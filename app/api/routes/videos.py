@@ -1,32 +1,30 @@
-from fastapi import APIRouter, Depends, File, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
-from app.services import video_service
+from app.schemas.video import VideoResponse
+from app.services.processing_service import create_processing_job
+from app.services.video_service import get_video_by_id, save_video
 
 router = APIRouter(prefix="/videos", tags=["Videos"])
 
 
-@router.post("/upload")
+@router.post("/upload", response_model=VideoResponse)
 def upload_video(file: UploadFile = File(...), db: Session = Depends(get_db)):
-    return video_service.upload_video(file=file, db=db)
+    try:
+        video = save_video(db=db, file=file)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    create_processing_job(db=db, video_id=video.id)
+    db.refresh(video)
+    return video
 
 
-@router.get("")
-def list_videos(db: Session = Depends(get_db)):
-    return video_service.list_videos(db=db)
-
-
-@router.get("/{video_id}")
+@router.get("/{video_id}", response_model=VideoResponse)
 def get_video(video_id: int, db: Session = Depends(get_db)):
-    return video_service.get_video(video_id=video_id, db=db)
+    video = get_video_by_id(db=db, video_id=video_id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
 
-
-@router.get("/{video_id}/lecture")
-def get_video_lecture(video_id: int, db: Session = Depends(get_db)):
-    return video_service.get_video_lecture(video_id=video_id, db=db)
-
-
-@router.get("/{video_id}/quiz")
-def get_video_quiz(video_id: int, db: Session = Depends(get_db)):
-    return video_service.get_video_quiz(video_id=video_id, db=db)
+    return video
