@@ -10,10 +10,11 @@ CREATE TABLE IF NOT EXISTS processing_jobs (
     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
 
     CONSTRAINT chk_processing_jobs_type
-        CHECK (job_type IN ('transcription', 'lecture_generation', 'quiz_generation')),
+        CHECK (job_type IN ('transcription', 'lecture_generation', 'quiz_generation', 'video_pipeline')),
 
+    -- fix: added queued, generating_lecture, generating_quiz to match processing_service.py
     CONSTRAINT chk_processing_jobs_status
-        CHECK (status IN ('pending', 'processing', 'completed', 'failed'))
+        CHECK (status IN ('pending', 'queued', 'processing', 'generating_lecture', 'generating_quiz', 'completed', 'failed'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_processing_jobs_video_id ON processing_jobs(video_id);
