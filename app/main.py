@@ -1,6 +1,13 @@
 from fastapi import FastAPI
 
-from app.api.routes import auth_router, processing_router, projects_router, videos_router
+from app.api.routes import (
+    auth_router,
+    lectures_router,
+    processing_router,
+    projects_router,
+    quiz_router,
+    videos_router,
+)
 from app.core.database import Base, engine
 
 Base.metadata.create_all(bind=engine)
@@ -11,3 +18,5 @@ app.include_router(auth_router)
 app.include_router(projects_router)
 app.include_router(videos_router)
 app.include_router(processing_router)
+app.include_router(lectures_router)
+app.include_router(quiz_router)
