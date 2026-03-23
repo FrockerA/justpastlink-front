@@ -27,3 +27,4 @@ class Video(Base):
     processing_jobs = relationship("ProcessingJob", back_populates="video", cascade="all, delete-orphan")
     transcript = relationship("Transcript", back_populates="video", uselist=False, cascade="all, delete-orphan")
     lecture = relationship("Lecture", back_populates="video", uselist=False, cascade="all, delete-orphan")
+    quiz = relationship("Quiz", back_populates="video", uselist=False, cascade="all, delete-orphan")
