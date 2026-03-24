@@ -20,4 +20,3 @@ class Lecture(Base):
     updated_at = Column(DateTime, nullable=False, server_default=func.now(), onupdate=func.now())
 
     video = relationship("Video", back_populates="lecture")
-    quiz_questions = relationship("QuizQuestion", back_populates="lecture", cascade="all, delete-orphan")
