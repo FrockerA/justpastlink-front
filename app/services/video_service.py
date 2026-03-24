@@ -9,10 +9,27 @@ from app.models.video import Video
 
 UPLOAD_DIR = Path("uploads")
 
+# Разрешённые MIME типы для видео
+ALLOWED_MIME_TYPES = {
+    "video/mp4",
+    "video/mpeg",
+    "video/quicktime",
+    "video/x-msvideo",
+    "video/x-matroska",  # .mkv
+    "video/webm",
+}
 
-def save_video(db: Session, file: UploadFile) -> Video:
+
+def save_video(db: Session, file: UploadFile, user_id: int) -> Video:  # ← добавили user_id
     if file is None or not file.filename:
         raise ValueError("Uploaded file is required")
+
+    # Валидация MIME типа
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        raise ValueError(
+            f"Invalid file type: {file.content_type}. "
+            f"Allowed types: {', '.join(ALLOWED_MIME_TYPES)}"
+        )
 
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -25,6 +42,7 @@ def save_video(db: Session, file: UploadFile) -> Video:
             shutil.copyfileobj(file.file, buffer)
 
         video = Video(
+            user_id=user_id,  # ← устанавливаем user_id
             original_filename=file.filename,
             stored_filename=stored_filename,
             file_path=str(destination),
@@ -50,3 +68,8 @@ def save_video(db: Session, file: UploadFile) -> Video:
 
 def get_video_by_id(db: Session, video_id: int) -> Video | None:
     return db.query(Video).filter(Video.id == video_id).first()
+
+
+def get_user_videos(db: Session, user_id: int) -> list[Video]:
+    """Получить все видео пользователя."""
+    return db.query(Video).filter(Video.user_id == user_id).all()
