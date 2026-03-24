@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS videos (
 
     -- fix: added queued, generating_lecture, generating_quiz to match processing_service.py
     CONSTRAINT chk_videos_status
-        CHECK (status IN ('uploaded', 'queued', 'processing', 'generating_lecture', 'generating_quiz', 'completed', 'failed'))
+        CHECK (status IN ('pending', 'uploaded', 'queued', 'processing', 'generating_lecture', 'generating_quiz', 'completed', 'failed'))
 );
 
 CREATE INDEX IF NOT EXISTS idx_videos_user_id ON videos(user_id);

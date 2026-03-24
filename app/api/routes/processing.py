@@ -24,7 +24,7 @@ def start_processing(
     job = create_processing_job(db=db, video_id=video_id)
 
     # Run pipeline in background so the response returns immediately
-    background_tasks.add_task(run_pipeline, db=db, video_id=video_id, file_path=video.file_path)
+    background_tasks.add_task(run_pipeline, video_id=video_id, file_path=video.file_path)
 
     return job
 
