@@ -33,4 +33,11 @@ def decode_token(token: str) -> dict:
     return jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
 
 
-__all__ = ["JWTError", "create_access_token", "decode_token", "get_password_hash", "verify_password"]
+__all__ = [
+    "JWTError",
+    "create_access_token",
+    "decode_token",
+    "get_password_hash",
+    "validate_password_length",
+    "verify_password",
+]

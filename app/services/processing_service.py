@@ -7,7 +7,6 @@ from app.models.video import Video
 
 
 VALID_PROCESSING_STATUSES = {
-    "uploaded",
     "queued",
     "processing",
     "generating_lecture",

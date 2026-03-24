@@ -79,9 +79,16 @@ def generate_lecture(db: Session, video_id: int, transcript_text: str) -> Lectur
 
 
 def create_lecture(db: Session, video_id: int, content: str, summary: str | None = None) -> Lecture:
-    """Manually create a lecture (for testing / admin use)."""
-    lecture = Lecture(video_id=video_id, content=content, summary=summary, status="generated")
-    db.add(lecture)
+    """Manually create or update a lecture (for testing / admin use)."""
+    lecture = db.query(Lecture).filter(Lecture.video_id == video_id).first()
+    if lecture:
+        lecture.content = content
+        lecture.summary = summary
+        lecture.status = "generated"
+    else:
+        lecture = Lecture(video_id=video_id, content=content, summary=summary, status="generated")
+        db.add(lecture)
+
     db.commit()
     db.refresh(lecture)
     return lecture
