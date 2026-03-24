@@ -1,16 +1,15 @@
-from sqlalchemy.orm import Session
-
+from app.db.session import SessionLocal
 from app.services.processing_service import (
-    update_processing_status,
-    mark_processing_failed,
     mark_processing_completed,
+    mark_processing_failed,
+    update_processing_status,
 )
 from app.services.transcription_service import transcribe_video
 from app.services.lecture_service import generate_lecture
 from app.services.quiz_service import generate_quiz
 
 
-def run_pipeline(db: Session, video_id: int, file_path: str) -> None:
+def run_pipeline(video_id: int, file_path: str) -> None:
     """
     Full processing pipeline:
     1. Transcribe video  -> saves Transcript
@@ -18,6 +17,7 @@ def run_pipeline(db: Session, video_id: int, file_path: str) -> None:
     3. Generate quiz     -> saves Quiz
     Updates ProcessingJob and Video status at each step.
     """
+    db = SessionLocal()
     try:
         # Step 1: Transcription
         update_processing_status(db, video_id, "processing")
@@ -35,5 +35,8 @@ def run_pipeline(db: Session, video_id: int, file_path: str) -> None:
         mark_processing_completed(db, video_id)
 
     except Exception as e:
+        db.rollback()
         mark_processing_failed(db, video_id, error_message=str(e))
         raise
+    finally:
+        db.close()

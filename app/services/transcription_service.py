@@ -1,17 +1,21 @@
 import whisper
+from threading import Lock
 from sqlalchemy.orm import Session
 
 from app.models.transcript import Transcript
 
 
 _model = None
+_model_lock = Lock()
 
 
 def _get_model():
     """Load Whisper model once and reuse."""
     global _model
     if _model is None:
-        _model = whisper.load_model("base")
+        with _model_lock:
+            if _model is None:
+                _model = whisper.load_model("base")
     return _model
 
 
