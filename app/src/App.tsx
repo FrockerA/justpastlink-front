@@ -3,6 +3,7 @@ import { AuthProvider } from '@/hooks/useAuth.tsx';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
+import { WelcomePage } from '@/pages/WelcomePage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { VideoDetailPage } from '@/pages/VideoDetailPage';
 import { Toaster } from '@/components/ui/sonner';
@@ -17,6 +18,14 @@ function App() {
           <Route path="/register" element={<RegisterPage />} />
           
           {/* Protected Routes */}
+          <Route
+            path="/welcome"
+            element={
+              <ProtectedRoute>
+                <WelcomePage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
@@ -35,8 +44,8 @@ function App() {
           />
           
           {/* Default Redirect */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/" element={<Navigate to="/welcome" replace />} />
+          <Route path="*" element={<Navigate to="/welcome" replace />} />
         </Routes>
       </BrowserRouter>
       <Toaster position="top-right" />

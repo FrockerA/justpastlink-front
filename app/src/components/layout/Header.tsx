@@ -1,138 +1,85 @@
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { 
-  GraduationCap, 
-  User, 
-  LogOut, 
-  Settings,
-  Video,
-  Menu
-} from 'lucide-react';
+import { GraduationCap, Home, Video, Menu } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+
+const navItems = [
+  { to: '/welcome', label: 'Welcome', icon: Home },
+  { to: '/dashboard', label: 'Your Videos', icon: Video },
+];
 
 export function Header() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const location = useLocation();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
+  const pageNames: Record<string, string> = {
+    '/welcome': 'Welcome',
+    '/dashboard': 'Dashboard',
+    '/settings': 'Settings',
+    '/profile': 'Profile',
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const getPageTitle = () => {
+    const path = location.pathname;
+    if (pageNames[path]) return pageNames[path];
+    if (path.startsWith('/videos/')) return 'Video Details';
+    return '';
   };
-
-  const navItems = [
-    { to: '/dashboard', label: 'Dashboard', icon: Video },
-  ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-14 items-center">
-        {/* Logo */}
-        <Link to="/dashboard" className="flex items-center gap-2 mr-6">
-          <div className="p-1.5 rounded-lg bg-primary">
-            <GraduationCap className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="font-semibold text-lg hidden sm:inline">
-            Video-to-Lecture
-          </span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-6 flex-1">
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Mobile Navigation */}
+    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 items-center px-4 md:px-8">
+        
+        {/* Mobile menu trigger */}
         <Sheet>
           <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="mr-2">
+            <Button variant="ghost" size="icon" className="mr-3">
               <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle mobile menu</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64">
-            <div className="flex items-center gap-2 mb-6">
-              <div className="p-1.5 rounded-lg bg-primary">
-                <GraduationCap className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="font-semibold">Video-to-Lecture</span>
+          <SheetContent side="left" className="w-64 p-0">
+            <div className="p-6 border-b">
+              <Link to="/welcome" className="flex items-center gap-3">
+                <div className="p-1.5 rounded-lg bg-primary shrink-0">
+                  <GraduationCap className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <span className="font-semibold">Video-to-Lecture</span>
+              </Link>
             </div>
-            <nav className="space-y-2">
+            <nav className="p-4 space-y-2">
               {navItems.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-accent"
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
+                    (location.pathname === item.to || location.pathname.startsWith(`${item.to}/`))
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  )}
                 >
                   <item.icon className="h-4 w-4" />
                   {item.label}
                 </Link>
               ))}
             </nav>
+            {user && (
+              <div className="absolute bottom-4 left-4 right-4">
+                 <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+              </div>
+            )}
           </SheetContent>
         </Sheet>
 
-        {/* User Menu */}
-        <div className="flex items-center gap-4 ml-auto">
-          {user && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-primary/10 text-primary text-sm">
-                      {getInitials(user.full_name)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <div className="flex items-center gap-2 p-2">
-                  <div className="flex flex-col space-y-0.5">
-                    <p className="text-sm font-medium">{user.full_name}</p>
-                    <p className="text-xs text-muted-foreground">{user.email}</p>
-                  </div>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
-                  <User className="mr-2 h-4 w-4" />
-                  Profile
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout} className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+        {/* Page Title for Desktop/Tablet */}
+        <div className="flex-1 flex items-center justify-between">
+          <h2 className="text-lg font-semibold tracking-tight">
+            {getPageTitle()}
+          </h2>
+          {/* Add extra actions here in the future if needed */}
         </div>
       </div>
     </header>
