@@ -108,21 +108,9 @@ export function useProcessingStatus(videoId: number | null, pollInterval = 5000)
     return () => clearInterval(interval);
   }, [fetchStatus, pollInterval, status?.video_status]);
 
-  const startTranscription = async () => {
+  const startProcessing = async () => {
     if (!videoId) return;
-    await processingApi.startTranscription(videoId);
-    await fetchStatus();
-  };
-
-  const startLectureGeneration = async () => {
-    if (!videoId) return;
-    await processingApi.startLectureGeneration(videoId);
-    await fetchStatus();
-  };
-
-  const startQuizGeneration = async () => {
-    if (!videoId) return;
-    await processingApi.startQuizGeneration(videoId);
+    await processingApi.startProcessing(videoId);
     await fetchStatus();
   };
 
@@ -131,8 +119,6 @@ export function useProcessingStatus(videoId: number | null, pollInterval = 5000)
     isLoading,
     error,
     fetchStatus,
-    startTranscription,
-    startLectureGeneration,
-    startQuizGeneration,
+    startProcessing,
   };
 }

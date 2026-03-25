@@ -41,9 +41,9 @@ export function LectureView({ videoId }: LectureViewProps) {
 
   const handleEdit = () => {
     if (lecture) {
-      setEditedTitle(lecture.title);
+      setEditedTitle(lecture.title ?? "");
       setEditedContent(lecture.content);
-      setEditedSummary(lecture.summary);
+      setEditedSummary(lecture.summary ?? "");
       setIsEditing(true);
     }
   };
