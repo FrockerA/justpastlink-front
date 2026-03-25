@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS transcripts (
+    id BIGSERIAL PRIMARY KEY,
+    video_id BIGINT NOT NULL UNIQUE REFERENCES videos(id) ON DELETE CASCADE,
+    full_text TEXT NOT NULL,
+    language VARCHAR(50),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
