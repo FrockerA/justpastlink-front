@@ -6,6 +6,7 @@ import { RegisterPage } from '@/pages/RegisterPage';
 import { WelcomePage } from '@/pages/WelcomePage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { VideoDetailPage } from '@/pages/VideoDetailPage';
+import { VideoResultPage } from '@/pages/VideoResultPage';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
@@ -39,6 +40,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <VideoDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/videos/:videoId/result"
+            element={
+              <ProtectedRoute>
+                <VideoResultPage />
               </ProtectedRoute>
             }
           />
