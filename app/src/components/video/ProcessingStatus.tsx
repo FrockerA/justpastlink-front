@@ -46,9 +46,7 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     isLoading, 
     error, 
     fetchStatus,
-    startTranscription,
-    startLectureGeneration,
-    startQuizGeneration 
+    startProcessing 
   } = useProcessingStatus(videoId);
 
   if (isLoading) {
@@ -134,9 +132,8 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     }
   };
 
-  const canStartTranscription = status.video_status === 'uploaded' && !status.jobs.find(j => j.job_type === 'transcription');
-  const canStartLecture = status.transcript_ready && !status.lecture_ready && !status.jobs.find(j => j.job_type === 'lecture_generation');
-  const canStartQuiz = status.lecture_ready && !status.quiz_ready && !status.jobs.find(j => j.job_type === 'quiz_generation');
+  const hasRunningJob = status.jobs.some((job) => ['pending', 'processing', 'queued'].includes(job.status));
+  const canStartProcessing = !status.quiz_ready && !hasRunningJob;
 
   return (
     <Card>
@@ -157,22 +154,10 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
       <CardContent className="space-y-6">
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-2">
-          {canStartTranscription && (
-            <Button onClick={startTranscription} size="sm">
+          {canStartProcessing && (
+            <Button onClick={startProcessing} size="sm">
               <Play className="h-4 w-4 mr-2" />
-              Start Transcription
-            </Button>
-          )}
-          {canStartLecture && (
-            <Button onClick={startLectureGeneration} size="sm">
-              <BookOpen className="h-4 w-4 mr-2" />
-              Generate Lecture
-            </Button>
-          )}
-          {canStartQuiz && (
-            <Button onClick={startQuizGeneration} size="sm">
-              <HelpCircle className="h-4 w-4 mr-2" />
-              Generate Quiz
+              Start Processing
             </Button>
           )}
         </div>

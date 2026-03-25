@@ -57,8 +57,8 @@ export function QuizView({ videoId }: QuizViewProps) {
 
   const calculateScore = () => {
     let correct = 0;
-    questions.forEach((q) => {
-      if (selectedAnswers[q.id] === q.correct_answer) {
+    questions.forEach((q, index) => {
+      if (selectedAnswers[q.id ?? index] === q.correct_answer) {
         correct++;
       }
     });
@@ -132,6 +132,7 @@ export function QuizView({ videoId }: QuizViewProps) {
   }
 
   const currentQuestion = questions[activeQuestion];
+  const currentQuestionKey = currentQuestion.id ?? activeQuestion;
   const score = calculateScore();
   const totalQuestions = questions.length;
 
@@ -191,11 +192,11 @@ export function QuizView({ videoId }: QuizViewProps) {
               </span>
               {showResults && (
                 <Badge 
-                  variant={getAnswerStatus(currentQuestion, selectedAnswers[currentQuestion.id]) === 'correct' ? 'default' : 'destructive'}
+                  variant={getAnswerStatus(currentQuestion, selectedAnswers[currentQuestionKey]) === 'correct' ? 'default' : 'destructive'}
                 >
-                  {getAnswerStatus(currentQuestion, selectedAnswers[currentQuestion.id]) === 'correct' ? (
+                  {getAnswerStatus(currentQuestion, selectedAnswers[currentQuestionKey]) === 'correct' ? (
                     <><CheckCircle2 className="h-3 w-3 mr-1" /> Correct</>
-                  ) : getAnswerStatus(currentQuestion, selectedAnswers[currentQuestion.id]) === 'incorrect' ? (
+                  ) : getAnswerStatus(currentQuestion, selectedAnswers[currentQuestionKey]) === 'incorrect' ? (
                     <><XCircle className="h-3 w-3 mr-1" /> Incorrect</>
                   ) : (
                     'Unanswered'
@@ -209,8 +210,8 @@ export function QuizView({ videoId }: QuizViewProps) {
               <h3 className="font-medium text-lg mb-4">{currentQuestion.question_text}</h3>
               
               <RadioGroup
-                value={selectedAnswers[currentQuestion.id] || ''}
-                onValueChange={(value) => handleAnswerSelect(currentQuestion.id, value)}
+                value={selectedAnswers[currentQuestionKey] || ''}
+                onValueChange={(value) => handleAnswerSelect(currentQuestionKey, value)}
                 className="space-y-3"
                 disabled={showResults}
               >
@@ -220,7 +221,7 @@ export function QuizView({ videoId }: QuizViewProps) {
                   { key: 'C', text: currentQuestion.option_c },
                   { key: 'D', text: currentQuestion.option_d },
                 ].map((option) => {
-                  const isSelected = selectedAnswers[currentQuestion.id] === option.key;
+                  const isSelected = selectedAnswers[currentQuestionKey] === option.key;
                   const isCorrect = option.key === currentQuestion.correct_answer;
                   const showCorrectness = showResults && (isCorrect || isSelected);
                   
@@ -241,11 +242,11 @@ export function QuizView({ videoId }: QuizViewProps) {
                     >
                       <RadioGroupItem 
                         value={option.key} 
-                        id={`${currentQuestion.id}-${option.key}`}
+                        id={`${currentQuestionKey}-${option.key}`}
                         disabled={showResults}
                       />
                       <Label 
-                        htmlFor={`${currentQuestion.id}-${option.key}`}
+                        htmlFor={`${currentQuestionKey}-${option.key}`}
                         className="flex-1 cursor-pointer"
                       >
                         <span className="font-medium">{option.key}.</span> {option.text}
@@ -267,15 +268,15 @@ export function QuizView({ videoId }: QuizViewProps) {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => toggleExplanation(currentQuestion.id)}
+                    onClick={() => toggleExplanation(currentQuestionKey)}
                   >
-                    {showExplanation[currentQuestion.id] ? (
+                    {showExplanation[currentQuestionKey] ? (
                       <><EyeOff className="h-4 w-4 mr-2" /> Hide Explanation</>
                     ) : (
                       <><Eye className="h-4 w-4 mr-2" /> Show Explanation</>
                     )}
                   </Button>
-                  {showExplanation[currentQuestion.id] && (
+                  {showExplanation[currentQuestionKey] && (
                     <div className="mt-2 p-4 bg-muted rounded-lg text-sm">
                       <p className="font-medium mb-1">Explanation:</p>
                       <p className="text-muted-foreground">{currentQuestion.explanation}</p>
@@ -324,7 +325,7 @@ export function QuizView({ videoId }: QuizViewProps) {
           // Preview Mode - Show all questions
           <div className="space-y-4">
             {questions.map((question, index) => (
-              <div key={question.id} className="border rounded-lg p-4">
+              <div key={`${question.id ?? index}-${question.question_text}`} className="border rounded-lg p-4">
                 <div className="flex items-start gap-3">
                   <Badge variant="secondary" className="shrink-0">Q{index + 1}</Badge>
                   <div className="flex-1">
