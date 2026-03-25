@@ -139,19 +139,19 @@ export function VideoDetailPage() {
           </TabsList>
 
           <TabsContent value="status" className="mt-6">
-            <ProcessingStatus videoId={video.id} />
+            {currentTab === 'status' && <ProcessingStatus videoId={video.id} />}
           </TabsContent>
 
           <TabsContent value="transcript" className="mt-6">
-            <TranscriptView videoId={video.id} />
+            {currentTab === 'transcript' && <TranscriptView videoId={video.id} />}
           </TabsContent>
 
           <TabsContent value="lecture" className="mt-6">
-            <LectureView videoId={video.id} />
+            {currentTab === 'lecture' && <LectureView videoId={video.id} />}
           </TabsContent>
 
           <TabsContent value="quiz" className="mt-6">
-            <QuizView videoId={video.id} />
+            {currentTab === 'quiz' && <QuizView videoId={video.id} />}
           </TabsContent>
         </Tabs>
       </div>

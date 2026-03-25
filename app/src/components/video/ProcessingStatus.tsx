@@ -106,10 +106,15 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     switch (status.video_status) {
       case 'uploaded':
         return <Clock className="h-5 w-5 text-yellow-500" />;
+      case 'queued':
+        return <Clock className="h-5 w-5 text-amber-500" />;
       case 'processing':
+      case 'generating_lecture':
+      case 'generating_quiz':
         return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />;
       case 'completed':
         return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case 'failed':
       case 'error':
         return <XCircle className="h-5 w-5 text-red-500" />;
       default:
@@ -121,10 +126,17 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     switch (status.video_status) {
       case 'uploaded':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Uploaded</Badge>;
+      case 'queued':
+        return <Badge variant="secondary" className="bg-amber-100 text-amber-800">Queued</Badge>;
       case 'processing':
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Processing</Badge>;
+      case 'generating_lecture':
+        return <Badge variant="secondary" className="bg-indigo-100 text-indigo-800">Generating Lecture</Badge>;
+      case 'generating_quiz':
+        return <Badge variant="secondary" className="bg-violet-100 text-violet-800">Generating Quiz</Badge>;
       case 'completed':
         return <Badge variant="secondary" className="bg-green-100 text-green-800">Completed</Badge>;
+      case 'failed':
       case 'error':
         return <Badge variant="destructive">Error</Badge>;
       default:
@@ -132,8 +144,9 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     }
   };
 
-  const hasRunningJob = status.jobs.some((job) => ['pending', 'processing', 'queued'].includes(job.status));
-  const canStartProcessing = !status.quiz_ready && !hasRunningJob;
+  const hasRunningJob = status.jobs.some((job) => ['pending', 'queued', 'processing', 'generating_lecture', 'generating_quiz'].includes(job.status));
+  const hasAllContent = status.transcript_ready && status.lecture_ready && status.quiz_ready;
+  const canStartProcessing = !hasAllContent && !hasRunningJob;
 
   return (
     <Card>

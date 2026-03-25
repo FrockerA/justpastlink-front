@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { videosApi, processingApi } from '@/lib/api';
 import type { Video, ProcessingStatusResponse } from '@/types';
 
+const IN_PROGRESS_STATUSES = ['queued', 'pending', 'processing', 'generating_lecture', 'generating_quiz'];
+
 export function useVideos() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,7 +102,7 @@ export function useProcessingStatus(videoId: number | null, pollInterval = 5000)
 
     // Poll for updates if processing is not complete
     const interval = setInterval(() => {
-      if (status && (status.video_status === 'processing' || status.video_status === 'uploaded')) {
+      if (status && IN_PROGRESS_STATUSES.includes(status.video_status)) {
         fetchStatus();
       }
     }, pollInterval);
