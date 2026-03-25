@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.schemas.video import VideoResponse
-from app.services.processing_service import create_processing_job
 from app.services.video_service import get_video_by_id, get_user_videos, save_video
 
 router = APIRouter(prefix="/videos", tags=["Videos"])
@@ -30,8 +29,6 @@ def upload_video(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    create_processing_job(db=db, video_id=video.id)
-    db.refresh(video)
     return video
 
 

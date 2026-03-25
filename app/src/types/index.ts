@@ -22,7 +22,7 @@ export interface Video {
   updated_at: string;
 }
 
-export type VideoStatus = 'uploaded' | 'queued' | 'processing' | 'completed' | 'failed' | 'error';
+export type VideoStatus = 'uploaded' | 'queued' | 'processing' | 'generating_lecture' | 'generating_quiz' | 'completed' | 'failed' | 'error';
 
 export interface ProcessingJob {
   id: number;

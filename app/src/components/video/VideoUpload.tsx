@@ -74,7 +74,7 @@ export function VideoUpload({ onUploadSuccess }: VideoUploadProps) {
       setUploadSuccess(true);
       setSelectedFile(null);
       onUploadSuccess?.();
-      navigate(`/videos/${uploadedVideo.id}/result`);
+      navigate(`/videos/${uploadedVideo.id}?tab=status`);
     } catch (err: any) {
       setUploadError(err.response?.data?.detail || 'Failed to upload video');
     } finally {
@@ -110,7 +110,7 @@ export function VideoUpload({ onUploadSuccess }: VideoUploadProps) {
           <Alert className="bg-green-50 border-green-200">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              Video uploaded successfully! Processing will begin shortly.
+              Video uploaded successfully! You can now start transcription from the status page.
             </AlertDescription>
           </Alert>
         )}
