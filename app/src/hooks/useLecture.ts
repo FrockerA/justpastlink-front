@@ -16,7 +16,8 @@ export function useLecture(videoId: number | null) {
       setLecture(data);
     } catch (err: any) {
       if (err.response?.status === 404) {
-        setError('Lecture not found');
+        setLecture(null);
+        setError(null);
       } else {
         setError('Failed to fetch lecture');
       }

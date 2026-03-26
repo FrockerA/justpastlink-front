@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useVideos } from '@/hooks/useVideos';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +13,7 @@ interface VideoUploadProps {
 
 export function VideoUpload({ onUploadSuccess }: VideoUploadProps) {
   const { uploadVideo } = useVideos();
+  const navigate = useNavigate();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isUploading, setIsUploading] = useState(false);
@@ -65,13 +67,14 @@ export function VideoUpload({ onUploadSuccess }: VideoUploadProps) {
     setUploadError(null);
 
     try {
-      await uploadVideo(selectedFile, (progress) => {
+      const uploadedVideo = await uploadVideo(selectedFile, (progress) => {
         setUploadProgress(progress);
       });
-      
+
       setUploadSuccess(true);
       setSelectedFile(null);
       onUploadSuccess?.();
+      navigate(`/videos/${uploadedVideo.id}?tab=status`);
     } catch (err: any) {
       setUploadError(err.response?.data?.detail || 'Failed to upload video');
     } finally {
@@ -107,7 +110,7 @@ export function VideoUpload({ onUploadSuccess }: VideoUploadProps) {
           <Alert className="bg-green-50 border-green-200">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              Video uploaded successfully! Processing will begin shortly.
+              Video uploaded successfully! You can now start transcription from the status page.
             </AlertDescription>
           </Alert>
         )}

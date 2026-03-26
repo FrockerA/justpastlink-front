@@ -46,9 +46,7 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     isLoading, 
     error, 
     fetchStatus,
-    startTranscription,
-    startLectureGeneration,
-    startQuizGeneration 
+    startProcessing 
   } = useProcessingStatus(videoId);
 
   if (isLoading) {
@@ -108,10 +106,15 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     switch (status.video_status) {
       case 'uploaded':
         return <Clock className="h-5 w-5 text-yellow-500" />;
+      case 'queued':
+        return <Clock className="h-5 w-5 text-amber-500" />;
       case 'processing':
+      case 'generating_lecture':
+      case 'generating_quiz':
         return <Loader2 className="h-5 w-5 animate-spin text-blue-500" />;
       case 'completed':
         return <CheckCircle2 className="h-5 w-5 text-green-500" />;
+      case 'failed':
       case 'error':
         return <XCircle className="h-5 w-5 text-red-500" />;
       default:
@@ -123,10 +126,17 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     switch (status.video_status) {
       case 'uploaded':
         return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Uploaded</Badge>;
+      case 'queued':
+        return <Badge variant="secondary" className="bg-amber-100 text-amber-800">Queued</Badge>;
       case 'processing':
         return <Badge variant="secondary" className="bg-blue-100 text-blue-800">Processing</Badge>;
+      case 'generating_lecture':
+        return <Badge variant="secondary" className="bg-indigo-100 text-indigo-800">Generating Lecture</Badge>;
+      case 'generating_quiz':
+        return <Badge variant="secondary" className="bg-violet-100 text-violet-800">Generating Quiz</Badge>;
       case 'completed':
         return <Badge variant="secondary" className="bg-green-100 text-green-800">Completed</Badge>;
+      case 'failed':
       case 'error':
         return <Badge variant="destructive">Error</Badge>;
       default:
@@ -134,9 +144,9 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     }
   };
 
-  const canStartTranscription = status.video_status === 'uploaded' && !status.jobs.find(j => j.job_type === 'transcription');
-  const canStartLecture = status.transcript_ready && !status.lecture_ready && !status.jobs.find(j => j.job_type === 'lecture_generation');
-  const canStartQuiz = status.lecture_ready && !status.quiz_ready && !status.jobs.find(j => j.job_type === 'quiz_generation');
+  const hasRunningJob = status.jobs.some((job) => ['pending', 'queued', 'processing', 'generating_lecture', 'generating_quiz'].includes(job.status));
+  const hasAllContent = status.transcript_ready && status.lecture_ready && status.quiz_ready;
+  const canStartProcessing = !hasAllContent && !hasRunningJob;
 
   return (
     <Card>
@@ -157,22 +167,10 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
       <CardContent className="space-y-6">
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-2">
-          {canStartTranscription && (
-            <Button onClick={startTranscription} size="sm">
+          {canStartProcessing && (
+            <Button onClick={startProcessing} size="sm">
               <Play className="h-4 w-4 mr-2" />
-              Start Transcription
-            </Button>
-          )}
-          {canStartLecture && (
-            <Button onClick={startLectureGeneration} size="sm">
-              <BookOpen className="h-4 w-4 mr-2" />
-              Generate Lecture
-            </Button>
-          )}
-          {canStartQuiz && (
-            <Button onClick={startQuizGeneration} size="sm">
-              <HelpCircle className="h-4 w-4 mr-2" />
-              Generate Quiz
+              Start Processing
             </Button>
           )}
         </div>

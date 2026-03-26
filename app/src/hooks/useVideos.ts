@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { videosApi, processingApi } from '@/lib/api';
 import type { Video, ProcessingStatusResponse } from '@/types';
 
+const IN_PROGRESS_STATUSES = ['queued', 'pending', 'processing', 'generating_lecture', 'generating_quiz'];
+
 export function useVideos() {
   const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,7 +102,7 @@ export function useProcessingStatus(videoId: number | null, pollInterval = 5000)
 
     // Poll for updates if processing is not complete
     const interval = setInterval(() => {
-      if (status && (status.video_status === 'processing' || status.video_status === 'uploaded')) {
+      if (status && IN_PROGRESS_STATUSES.includes(status.video_status)) {
         fetchStatus();
       }
     }, pollInterval);
@@ -108,21 +110,9 @@ export function useProcessingStatus(videoId: number | null, pollInterval = 5000)
     return () => clearInterval(interval);
   }, [fetchStatus, pollInterval, status?.video_status]);
 
-  const startTranscription = async () => {
+  const startProcessing = async () => {
     if (!videoId) return;
-    await processingApi.startTranscription(videoId);
-    await fetchStatus();
-  };
-
-  const startLectureGeneration = async () => {
-    if (!videoId) return;
-    await processingApi.startLectureGeneration(videoId);
-    await fetchStatus();
-  };
-
-  const startQuizGeneration = async () => {
-    if (!videoId) return;
-    await processingApi.startQuizGeneration(videoId);
+    await processingApi.startProcessing(videoId);
     await fetchStatus();
   };
 
@@ -131,8 +121,6 @@ export function useProcessingStatus(videoId: number | null, pollInterval = 5000)
     isLoading,
     error,
     fetchStatus,
-    startTranscription,
-    startLectureGeneration,
-    startQuizGeneration,
+    startProcessing,
   };
 }

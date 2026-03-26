@@ -7,6 +7,7 @@ import type {
   ProcessingJob,
   Transcript,
   Lecture,
+  QuizApiResponse,
   QuizResponse,
   LoginRequest,
   RegisterRequest,
@@ -147,8 +148,20 @@ export const lecturesApi = {
 // Quiz API
 export const quizApi = {
   getQuestionsByVideo: async (videoId: number): Promise<QuizResponse> => {
-    const response = await apiClient.get<QuizResponse>(`/quiz/${videoId}`);
-    return response.data;
+    const response = await apiClient.get<QuizApiResponse>(`/quiz/${videoId}`);
+
+    let parsedQuestions = [];
+    try {
+      const maybeQuestions = JSON.parse(response.data.questions);
+      parsedQuestions = Array.isArray(maybeQuestions) ? maybeQuestions : [];
+    } catch {
+      parsedQuestions = [];
+    }
+
+    return {
+      ...response.data,
+      questions: parsedQuestions,
+    };
   },
 };
 

@@ -13,10 +13,11 @@ export function useQuiz(videoId: number | null) {
     setError(null);
     try {
       const data = await quizApi.getQuestionsByVideo(videoId);
-      setQuestions(data);
+      setQuestions(data.questions);
     } catch (err: any) {
       if (err.response?.status === 404) {
-        setError('Quiz questions not found');
+        setQuestions([]);
+        setError(null);
       } else {
         setError('Failed to fetch quiz questions');
       }
@@ -29,32 +30,10 @@ export function useQuiz(videoId: number | null) {
     fetchQuestions();
   }, [fetchQuestions]);
 
-  const createQuestion = async (data: Omit<QuizQuestion, 'id' | 'lecture_id' | 'created_at' | 'updated_at'>, lectureId: number) => {
-    const newQuestion = await quizApi.createQuestion(lectureId, data);
-    setQuestions((prev) => [...prev, newQuestion]);
-    return newQuestion;
-  };
-
-  const updateQuestion = async (questionId: number, data: Partial<QuizQuestion>) => {
-    const updated = await quizApi.updateQuestion(questionId, data);
-    setQuestions((prev) =>
-      prev.map((q) => (q.id === questionId ? updated : q))
-    );
-    return updated;
-  };
-
-  const deleteQuestion = async (questionId: number) => {
-    await quizApi.deleteQuestion(questionId);
-    setQuestions((prev) => prev.filter((q) => q.id !== questionId));
-  };
-
   return {
     questions,
     isLoading,
     error,
     fetchQuestions,
-    createQuestion,
-    updateQuestion,
-    deleteQuestion,
   };
 }

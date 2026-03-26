@@ -22,7 +22,7 @@ export interface Video {
   updated_at: string;
 }
 
-export type VideoStatus = 'uploaded' | 'queued' | 'processing' | 'completed' | 'failed' | 'error';
+export type VideoStatus = 'uploaded' | 'queued' | 'processing' | 'generating_lecture' | 'generating_quiz' | 'completed' | 'failed' | 'error';
 
 export interface ProcessingJob {
   id: number;
@@ -50,9 +50,9 @@ export interface Transcript {
 export interface Lecture {
   id: number;
   video_id: number;
-  title: string;
+  title: string | null;
   content: string;
-  summary: string;
+  summary: string | null;
   status: LectureStatus;
   created_at: string;
   updated_at: string;
@@ -61,6 +61,7 @@ export interface Lecture {
 export type LectureStatus = 'draft' | 'generated' | 'completed' | 'error';
 
 export interface QuizQuestion {
+  id?: number;
   question_text: string;
   option_a: string;
   option_b: string;
@@ -68,13 +69,20 @@ export interface QuizQuestion {
   option_d: string;
   correct_answer: 'A' | 'B' | 'C' | 'D' | string;
   explanation: string;
-  id?: number;
+}
+
+export interface QuizApiResponse {
+  id: number;
+  video_id: number;
+  questions: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface QuizResponse {
   id: number;
   video_id: number;
-  questions: string;
+  questions: QuizQuestion[];
   created_at: string;
   updated_at: string;
 }

@@ -28,15 +28,23 @@ interface VideoListProps {
 
 const statusColors: Record<string, string> = {
   uploaded: 'bg-yellow-500',
+  queued: 'bg-amber-500',
   processing: 'bg-blue-500',
+  generating_lecture: 'bg-indigo-500',
+  generating_quiz: 'bg-violet-500',
   completed: 'bg-green-500',
+  failed: 'bg-red-500',
   error: 'bg-red-500',
 };
 
 const statusLabels: Record<string, string> = {
   uploaded: 'Uploaded',
+  queued: 'Queued',
   processing: 'Processing',
+  generating_lecture: 'Generating Lecture',
+  generating_quiz: 'Generating Quiz',
   completed: 'Completed',
+  failed: 'Failed',
   error: 'Error',
 };
 
