@@ -1,4 +1,4 @@
-// Types for Video-to-Lecture System
+// Types for JustPastLink
 
 export interface User {
   id: number;

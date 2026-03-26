@@ -46,7 +46,7 @@ export function Sidebar() {
             <GraduationCap className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="font-semibold text-lg truncate tracking-tight">
-            Video-to-Lecture
+            JustPastLink
           </span>
         </Link>
       </div>

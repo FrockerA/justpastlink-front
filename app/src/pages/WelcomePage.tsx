@@ -16,7 +16,7 @@ export function WelcomePage() {
             <GraduationCap className="h-12 w-12 text-primary" />
           </div>
           <h1 className="text-4xl font-extrabold tracking-tight lg:text-5xl">
-            Welcome to Video-to-Lecture
+            Welcome to JustPastLink
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Transform any educational video into perfectly structured, searchable, and interactive learning materials in minutes.

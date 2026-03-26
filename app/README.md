@@ -1,6 +1,6 @@
-# Video-to-Lecture System - Frontend
+# JustPastLink - Frontend
 
-Frontend приложение для дипломного проекта "Intelligent System for Video-to-Lecture Transformation".
+Frontend приложение для дипломного проекта "JustPastLink".
 
 ## 🚀 Деплой
 

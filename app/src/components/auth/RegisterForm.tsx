@@ -17,11 +17,18 @@ export function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const passwordTooShort = password.length > 0 && password.length < 8;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      setIsLoading(false);
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -61,7 +68,7 @@ export function RegisterForm() {
               <Input
                 id="fullName"
                 type="text"
-                placeholder="John Doe"
+                placeholder="Имя Фамилия"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 className="pl-10"
@@ -94,10 +101,13 @@ export function RegisterForm() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10"
+                className={`pl-10 ${passwordTooShort ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 required
               />
             </div>
+            {passwordTooShort && (
+              <p className="text-sm text-destructive">Password must be at least 8 characters</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Confirm Password</Label>

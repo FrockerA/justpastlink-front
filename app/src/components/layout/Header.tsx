@@ -46,7 +46,7 @@ export function Header() {
                 <div className="p-1.5 rounded-lg bg-primary shrink-0">
                   <GraduationCap className="h-5 w-5 text-primary-foreground" />
                 </div>
-                <span className="font-semibold">Video-to-Lecture</span>
+                <span className="font-semibold">JustPastLink</span>
               </Link>
             </div>
             <nav className="p-4 space-y-2">

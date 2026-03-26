@@ -8,7 +8,7 @@ export function LoginPage() {
         <div className="inline-flex items-center justify-center p-3 rounded-xl bg-primary mb-4">
           <GraduationCap className="h-8 w-8 text-primary-foreground" />
         </div>
-        <h1 className="text-2xl font-bold">Video-to-Lecture System</h1>
+        <h1 className="text-2xl font-bold">JustPastLink</h1>
         <p className="text-muted-foreground mt-1">
           Transform your videos into structured learning materials
         </p>
