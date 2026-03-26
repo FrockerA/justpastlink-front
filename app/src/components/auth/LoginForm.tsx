@@ -15,11 +15,18 @@ export function LoginForm() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const passwordTooShort = password.length > 0 && password.length < 8;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters');
+      setIsLoading(false);
+      return;
+    }
 
     try {
       await login({ email, password });
@@ -71,10 +78,13 @@ export function LoginForm() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="pl-10"
+                className={`pl-10 ${passwordTooShort ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                 required
               />
             </div>
+            {passwordTooShort && (
+              <p className="text-sm text-destructive">Password must be at least 8 characters</p>
+            )}
           </div>
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
