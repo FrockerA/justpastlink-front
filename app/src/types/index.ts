@@ -87,9 +87,7 @@ export interface QuizResponse {
   updated_at: string;
 }
 
-export interface VideoUploadResponse extends Video {
-  // exact alias to avoid extensive frontend changes
-}
+export type VideoUploadResponse = Video;
 
 export interface ProcessingStatusResponse {
   video_id: number;

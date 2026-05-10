@@ -98,5 +98,32 @@ def get_lecture_by_video_id(db: Session, video_id: int) -> Lecture | None:
     return db.query(Lecture).filter(Lecture.video_id == video_id).first()
 
 
+def update_lecture(
+    db: Session,
+    video_id: int,
+    title: str | None = None,
+    content: str | None = None,
+    summary: str | None = None,
+    status: str | None = None,
+) -> Lecture | None:
+    lecture = get_lecture_by_video_id(db, video_id)
+    if not lecture:
+        return None
+
+    if title is not None:
+        lecture.title = title
+    if content is not None:
+        lecture.content = content
+    if summary is not None:
+        lecture.summary = summary
+    if status is not None:
+        lecture.status = status
+
+    db.add(lecture)
+    db.commit()
+    db.refresh(lecture)
+    return lecture
+
+
 def lecture_exists(db: Session, video_id: int) -> bool:
     return get_lecture_by_video_id(db, video_id) is not None
