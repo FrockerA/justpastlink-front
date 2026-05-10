@@ -32,15 +32,12 @@ export function useVideos() {
     return response;
   };
 
-<<<<<<< HEAD
   const uploadYoutubeVideo = async (youtubeUrl: string) => {
     const response = await videosApi.uploadYoutubeVideo(youtubeUrl);
     await fetchVideos();
     return response;
   };
 
-=======
->>>>>>> origin/main
   const deleteVideo = async (videoId: number) => {
     await videosApi.deleteVideo(videoId);
     await fetchVideos();
@@ -52,10 +49,7 @@ export function useVideos() {
     error,
     fetchVideos,
     uploadVideo,
-<<<<<<< HEAD
     uploadYoutubeVideo,
-=======
->>>>>>> origin/main
     deleteVideo,
   };
 }
