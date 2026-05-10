@@ -135,7 +135,11 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+<<<<<<< HEAD
+.env
+=======
 app/.env
+>>>>>>> origin/main
 .envrc
 .venv
 env/
@@ -209,6 +213,9 @@ __marimo__/
 uploads/
 *.mp4
 cookies.txt
+<<<<<<< HEAD
+node_modules/
+=======
 .env
 .env.local
 app/.env.local
@@ -220,3 +227,4 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
+>>>>>>> origin/main

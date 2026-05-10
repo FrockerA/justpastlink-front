@@ -1,4 +1,6 @@
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from threading import Thread
+
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -17,7 +19,6 @@ router = APIRouter(prefix="/processing", tags=["Processing"])
 @router.post("/{video_id}/start", response_model=ProcessingJobResponse)
 def start_processing(
     video_id: int,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -29,7 +30,11 @@ def start_processing(
         raise HTTPException(status_code=403, detail="Access forbidden")
 
     job = create_processing_job(db=db, video_id=video_id)
-    background_tasks.add_task(run_pipeline, video_id=video_id, file_path=video.file_path)
+    Thread(
+        target=run_pipeline,
+        kwargs={"video_id": video_id, "file_path": video.file_path},
+        daemon=True,
+    ).start()
     return job
 
 

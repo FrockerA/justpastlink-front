@@ -45,7 +45,7 @@ export function DashboardPage() {
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-2" />
-                  Upload Video
+                  Add Video
                 </>
               )}
             </Button>

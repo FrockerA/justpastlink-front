@@ -18,8 +18,6 @@ def download_youtube_audio(url: str, output_dir: str) -> dict:
             'preferredquality': '192',
         }],
 
-        'cookiefile': 'cookies.txt',
-
         'quiet': False,
         'no_warnings': False,
     }

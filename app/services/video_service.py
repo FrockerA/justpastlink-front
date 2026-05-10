@@ -74,21 +74,6 @@ def get_video_by_id(db: Session, video_id: int) -> Video | None:
 def get_user_videos(db: Session, user_id: int) -> list[Video]:
     """Получить все видео пользователя."""
     return db.query(Video).filter(Video.user_id == user_id).all()
-
-def delete_video(db: Session, video: Video) -> None:
-    """Delete video record and remove physical file if it exists."""
-    file_path = Path(video.file_path) if video.file_path else None
-
-    try:
-        db.delete(video)
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-
-    if file_path and file_path.exists():
-        file_path.unlink(missing_ok=True)
-
 def save_youtube_video(db: Session, youtube_url: str, user_id: int) -> Video:
     """
     Сохраняет видео из YouTube.

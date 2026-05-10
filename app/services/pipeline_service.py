@@ -1,3 +1,5 @@
+import logging
+
 from app.db.session import SessionLocal
 from app.services.processing_service import (
     mark_processing_completed,
@@ -7,6 +9,8 @@ from app.services.processing_service import (
 from app.services.transcription_service import transcribe_video
 from app.services.lecture_service import generate_lecture
 from app.services.quiz_service import generate_quiz
+
+logger = logging.getLogger(__name__)
 
 
 def run_pipeline(video_id: int, file_path: str) -> None:
@@ -35,8 +39,8 @@ def run_pipeline(video_id: int, file_path: str) -> None:
         mark_processing_completed(db, video_id)
 
     except Exception as e:
+        logger.exception("Video pipeline failed for video_id=%s", video_id)
         db.rollback()
         mark_processing_failed(db, video_id, error_message=str(e))
-        raise
     finally:
         db.close()
