@@ -97,7 +97,7 @@ export const videosApi = {
   },
 
   getVideos: async (): Promise<Video[]> => {
-    const response = await apiClient.get<Video[]>('/videos');
+    const response = await apiClient.get<Video[]>('/videos/');
     return response.data;
   },
 
