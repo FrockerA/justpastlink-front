@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { getApiErrorDetail } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -39,8 +40,8 @@ export function RegisterForm() {
     try {
       await register({ email, password, full_name: fullName });
       navigate('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data?.detail || 'Failed to create account');
+    } catch (err) {
+      setError(getApiErrorDetail(err, 'Failed to create account'));
     } finally {
       setIsLoading(false);
     }

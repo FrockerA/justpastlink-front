@@ -52,8 +52,7 @@ export function VideoList({ onRefresh }: VideoListProps) {
   const navigate = useNavigate();
   const { videos, isLoading, error, deleteVideo } = useVideos();
 
-  const handleDelete = async (videoId: number, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDelete = async (videoId: number) => {
     if (confirm('Are you sure you want to delete this video?')) {
       await deleteVideo(videoId);
       onRefresh?.();
@@ -225,7 +224,10 @@ export function VideoList({ onRefresh }: VideoListProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
-                    onClick={(e) => handleDelete(video.id, e as any)}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      void handleDelete(video.id);
+                    }}
                     className="text-destructive"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />

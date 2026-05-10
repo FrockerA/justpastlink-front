@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { transcriptsApi } from '@/lib/api';
+import { isApiErrorStatus, transcriptsApi } from '@/lib/api';
 import type { Transcript } from '@/types';
 
 export function useTranscript(videoId: number | null) {
@@ -14,8 +14,8 @@ export function useTranscript(videoId: number | null) {
     try {
       const data = await transcriptsApi.getTranscript(videoId);
       setTranscript(data);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err) {
+      if (isApiErrorStatus(err, 404)) {
         setTranscript(null);
         setError(null);
       } else {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { lecturesApi } from '@/lib/api';
+import { isApiErrorStatus, lecturesApi } from '@/lib/api';
 import type { Lecture } from '@/types';
 
 export function useLecture(videoId: number | null) {
@@ -14,8 +14,8 @@ export function useLecture(videoId: number | null) {
     try {
       const data = await lecturesApi.getLecture(videoId);
       setLecture(data);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err) {
+      if (isApiErrorStatus(err, 404)) {
         setLecture(null);
         setError(null);
       } else {
