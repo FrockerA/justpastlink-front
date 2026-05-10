@@ -1,7 +1,7 @@
 from typing import Optional
 from threading import Thread
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
@@ -9,7 +9,7 @@ from app.models.user import User
 from app.schemas.video import VideoResponse
 from app.services.pipeline_service import run_pipeline
 from app.services.processing_service import create_processing_job
-from app.services.video_service import get_video_by_id, save_video, save_youtube_video
+from app.services.video_service import delete_video, get_video_by_id, save_video, save_youtube_video
 
 router = APIRouter(prefix="/videos", tags=["Videos"])
 
@@ -78,3 +78,19 @@ def list_my_videos(
     """Получить все видео текущего пользователя."""
     from app.services.video_service import get_user_videos
     return get_user_videos(db=db, user_id=current_user.id)
+
+
+@router.delete("/{video_id}", status_code=status.HTTP_204_NO_CONTENT)
+def remove_video(
+        video_id: int,
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_user),
+):
+    video = get_video_by_id(db=db, video_id=video_id)
+    if not video:
+        raise HTTPException(status_code=404, detail="Video not found")
+    if video.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Access forbidden")
+
+    delete_video(db=db, video=video)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ArrowLeft, Loader2 } from 'lucide-react';
-import { lecturesApi, processingApi, quizApi } from '@/lib/api';
+import { getApiErrorDetail, lecturesApi, processingApi, quizApi } from '@/lib/api';
 import type { Lecture, QuizQuestion } from '@/types';
 
 export function VideoResultPage() {
@@ -13,6 +13,7 @@ export function VideoResultPage() {
   const navigate = useNavigate();
 
   const parsedVideoId = videoId ? Number.parseInt(videoId, 10) : null;
+  const hasInvalidVideoId = !parsedVideoId;
 
   const [status, setStatus] = useState('loading');
   const [lecture, setLecture] = useState<Lecture | null>(null);
@@ -20,12 +21,11 @@ export function VideoResultPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!parsedVideoId) {
-      setError('Invalid video id');
+    if (hasInvalidVideoId) {
       return;
     }
 
-    let intervalId: number | undefined;
+    const intervalIdRef: { current?: number } = {};
 
     const loadResult = async () => {
       try {
@@ -33,8 +33,8 @@ export function VideoResultPage() {
         setStatus(processing.video_status);
 
         if (processing.video_status === 'failed' || processing.video_status === 'error') {
-          setError('Обработка видео завершилась с ошибкой');
-          if (intervalId) window.clearInterval(intervalId);
+          setError('Video processing failed');
+          if (intervalIdRef.current) window.clearInterval(intervalIdRef.current);
           return;
         }
 
@@ -47,21 +47,23 @@ export function VideoResultPage() {
           setLecture(lectureData);
           setQuiz(quizData.questions);
 
-          if (intervalId) window.clearInterval(intervalId);
+          if (intervalIdRef.current) window.clearInterval(intervalIdRef.current);
         }
-      } catch (err: any) {
-        setError(err?.response?.data?.detail || err.message || 'Ошибка загрузки результата');
-        if (intervalId) window.clearInterval(intervalId);
+      } catch (err) {
+        setError(getApiErrorDetail(err, 'Failed to load result'));
+        if (intervalIdRef.current) window.clearInterval(intervalIdRef.current);
       }
     };
 
     loadResult();
-    intervalId = window.setInterval(loadResult, 3000);
+    intervalIdRef.current = window.setInterval(loadResult, 3000);
 
     return () => {
-      if (intervalId) window.clearInterval(intervalId);
+      if (intervalIdRef.current) window.clearInterval(intervalIdRef.current);
     };
-  }, [parsedVideoId]);
+  }, [hasInvalidVideoId, parsedVideoId]);
+
+  const visibleError = hasInvalidVideoId ? 'Invalid video id' : error;
 
   return (
     <MainLayout>
@@ -71,20 +73,20 @@ export function VideoResultPage() {
           Back
         </Button>
 
-        {error && (
+        {visibleError && (
           <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{visibleError}</AlertDescription>
           </Alert>
         )}
 
-        {!error && !lecture && (
+        {!visibleError && !lecture && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Loader2 className="h-5 w-5 animate-spin" />
-                Видео обрабатывается...
+                Video is processing...
               </CardTitle>
-              <CardDescription>Текущий статус: {status}</CardDescription>
+              <CardDescription>Current status: {status}</CardDescription>
             </CardHeader>
           </Card>
         )}
@@ -109,7 +111,9 @@ export function VideoResultPage() {
               <CardContent className="space-y-4">
                 {quiz.map((q, index) => (
                   <div key={`${index}-${q.question_text}`} className="rounded-lg border p-4">
-                    <p className="font-semibold">{index + 1}. {q.question_text}</p>
+                    <p className="font-semibold">
+                      {index + 1}. {q.question_text}
+                    </p>
                     <p>A. {q.option_a}</p>
                     <p>B. {q.option_b}</p>
                     <p>C. {q.option_c}</p>

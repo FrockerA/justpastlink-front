@@ -26,6 +26,18 @@ const apiClient: AxiosInstance = axios.create({
   timeout: 30000,
 });
 
+export function getApiErrorDetail(error: unknown, fallback: string): string {
+  if (axios.isAxiosError<ApiError>(error)) {
+    return error.response?.data?.detail || error.message || fallback;
+  }
+
+  return fallback;
+}
+
+export function isApiErrorStatus(error: unknown, statusCode: number): boolean {
+  return axios.isAxiosError<ApiError>(error) && error.response?.status === statusCode;
+}
+
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
@@ -86,6 +98,7 @@ export const videosApi = {
 
     const response = await apiClient.post<VideoUploadResponse>('/videos/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0,
       onUploadProgress: (progressEvent) => {
         if (onProgress && progressEvent.total) {
           const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
@@ -96,8 +109,19 @@ export const videosApi = {
     return response.data;
   },
 
+  uploadYoutubeVideo: async (youtubeUrl: string): Promise<VideoUploadResponse> => {
+    const formData = new FormData();
+    formData.append('youtube_url', youtubeUrl);
+
+    const response = await apiClient.post<VideoUploadResponse>('/videos/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 0,
+    });
+    return response.data;
+  },
+
   getVideos: async (): Promise<Video[]> => {
-    const response = await apiClient.get<Video[]>('/videos/');
+    const response = await apiClient.get<Video[]>('/videos');
     return response.data;
   },
 

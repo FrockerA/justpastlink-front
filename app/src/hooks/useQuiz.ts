@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { quizApi } from '@/lib/api';
+import { isApiErrorStatus, quizApi } from '@/lib/api';
 import type { QuizQuestion } from '@/types';
 
 export function useQuiz(videoId: number | null) {
@@ -14,8 +14,8 @@ export function useQuiz(videoId: number | null) {
     try {
       const data = await quizApi.getQuestionsByVideo(videoId);
       setQuestions(data.questions);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
+    } catch (err) {
+      if (isApiErrorStatus(err, 404)) {
         setQuestions([]);
         setError(null);
       } else {

@@ -15,7 +15,7 @@ export function useVideos() {
     try {
       const data = await videosApi.getVideos();
       setVideos(data);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch videos');
     } finally {
       setIsLoading(false);
@@ -66,7 +66,7 @@ export function useVideo(videoId: number | null) {
     try {
       const data = await videosApi.getVideo(videoId);
       setVideo(data);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch video');
     } finally {
       setIsLoading(false);
@@ -97,7 +97,7 @@ export function useProcessingStatus(videoId: number | null, pollInterval = 5000)
       const data = await processingApi.getStatus(videoId);
       setStatus(data);
       setError(null);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch processing status');
     } finally {
       setIsLoading(false);
@@ -106,16 +106,16 @@ export function useProcessingStatus(videoId: number | null, pollInterval = 5000)
 
   useEffect(() => {
     fetchStatus();
+  }, [fetchStatus]);
 
-    // Poll for updates if processing is not complete
-    const interval = setInterval(() => {
-      if (status && IN_PROGRESS_STATUSES.includes(status.video_status)) {
-        fetchStatus();
-      }
-    }, pollInterval);
+  useEffect(() => {
+    if (!status || !IN_PROGRESS_STATUSES.includes(status.video_status)) {
+      return;
+    }
 
+    const interval = setInterval(fetchStatus, pollInterval);
     return () => clearInterval(interval);
-  }, [fetchStatus, pollInterval, status?.video_status]);
+  }, [fetchStatus, pollInterval, status]);
 
   const startProcessing = async () => {
     if (!videoId) return;

@@ -73,7 +73,27 @@ def get_video_by_id(db: Session, video_id: int) -> Video | None:
 
 def get_user_videos(db: Session, user_id: int) -> list[Video]:
     """Получить все видео пользователя."""
-    return db.query(Video).filter(Video.user_id == user_id).all()
+    return (
+        db.query(Video)
+        .filter(Video.user_id == user_id)
+        .order_by(Video.created_at.desc(), Video.id.desc())
+        .all()
+    )
+
+
+def delete_video(db: Session, video: Video) -> None:
+    """Delete a video row and best-effort remove its stored media file."""
+    file_path = Path(video.file_path) if video.file_path else None
+    db.delete(video)
+    db.commit()
+
+    if file_path and file_path.exists():
+        try:
+            file_path.unlink()
+        except OSError:
+            pass
+
+
 def save_youtube_video(db: Session, youtube_url: str, user_id: int) -> Video:
     """
     Сохраняет видео из YouTube.
