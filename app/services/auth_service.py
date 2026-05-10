@@ -8,7 +8,7 @@ from app.core.security import (
 )
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
-from app.schemas.auth import Token, UserLogin
+from app.schemas.auth import AuthResponse, UserLogin
 from app.schemas.user import UserCreate
 
 
@@ -36,7 +36,7 @@ class AuthService:
         )
         return self.user_repository.create(user)
 
-    def login_user(self, credentials: UserLogin) -> Token:
+    def login_user(self, credentials: UserLogin) -> AuthResponse:
         user = self.user_repository.get_by_email(credentials.email)
         if not user or not verify_password(credentials.password, user.hashed_password):
             raise ValueError("Incorrect email or password")
@@ -45,4 +45,4 @@ class AuthService:
             raise ValueError("Inactive user")
 
         access_token = create_access_token(subject=str(user.id))
-        return Token(access_token=access_token)
+        return AuthResponse(access_token=access_token, user=user)

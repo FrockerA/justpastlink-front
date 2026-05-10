@@ -1,9 +1,13 @@
 import os
 import logging
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# Always load this project's env file regardless of current working directory.
+# This matters for commands like `alembic upgrade head` run from repo root.
+ENV_PATH = Path(__file__).resolve().parent.parent / ".env"  # app/.env
+load_dotenv(dotenv_path=str(ENV_PATH), override=True)
 logger = logging.getLogger(__name__)
 
 

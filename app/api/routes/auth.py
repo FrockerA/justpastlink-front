@@ -4,24 +4,26 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
-from app.schemas.auth import Token, UserLogin
+from app.core.security import create_access_token
+from app.schemas.auth import AuthResponse, Token, UserLogin
 from app.schemas.user import UserCreate, UserResponse
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     auth_service = AuthService(db)
     try:
         user = auth_service.register_user(user_in)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
-    return user
+    access_token = create_access_token(subject=str(user.id))
+    return AuthResponse(access_token=access_token, user=user)
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=AuthResponse)
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),

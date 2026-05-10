@@ -1,11 +1,17 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserBase(BaseModel):
     email: EmailStr
-    username: str | None = None
+    # DB column is `username`, but frontend uses `full_name`.
+    # Accept both input keys and serialize as `full_name`.
+    username: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("username", "full_name"),
+        serialization_alias="full_name",
+    )
 
 
 class UserCreate(UserBase):
