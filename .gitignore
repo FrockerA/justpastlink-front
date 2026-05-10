@@ -1,4 +1,3 @@
-
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -8,7 +7,6 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-
 .Python
 build/
 develop-eggs/
@@ -16,6 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
+lib/
 lib64/
 parts/
 sdist/
@@ -209,4 +208,4 @@ __marimo__/
 .idea/
 uploads/
 *.mp4
-node_modules/
+cookies.txt
