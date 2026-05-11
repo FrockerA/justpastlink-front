@@ -22,7 +22,7 @@ export function WelcomePage() {
             Transform any educational video into perfectly structured, searchable, and interactive learning materials in minutes.
           </p>
           <div className="pt-4">
-            <Button size="lg" className="px-8" onClick={() => navigate('/dashboard')}>
+            <Button size="lg" className="px-8" onClick={() => navigate('/videos')}>
               Get Started with Your First Video <Sparkles className="ml-2 h-4 w-4" />
             </Button>
           </div>

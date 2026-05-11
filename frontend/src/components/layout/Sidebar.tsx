@@ -1,6 +1,16 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { GraduationCap, Home, Video, User, LogOut, Settings } from 'lucide-react';
+import {
+  FileText,
+  GraduationCap,
+  HelpCircle,
+  LayoutDashboard,
+  LogOut,
+  PanelLeftClose,
+  Settings,
+  User,
+  Video,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -12,12 +22,21 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const navItems = [
-  { to: '/welcome', label: 'Welcome', icon: Home },
-  { to: '/dashboard', label: 'Your Videos', icon: Video },
+export const navItems = [
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/videos', label: 'My Videos', icon: Video },
+  { to: '/notes', label: 'Notes', icon: FileText },
+  { to: '/quizzes', label: 'Quizzes', icon: HelpCircle },
+  { to: '/settings', label: 'Settings', icon: Settings },
+  { to: '/profile', label: 'Profile', icon: User },
 ];
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -38,10 +57,14 @@ export function Sidebar() {
   };
 
   return (
-    <aside className="w-64 border-r bg-background/95 backdrop-blur hidden md:flex flex-col h-screen fixed top-0 left-0 bg-secondary/10">
-      {/* Logo Area */}
-      <div className="h-16 flex items-center px-6 border-b">
-        <Link to="/welcome" className="flex items-center gap-3">
+    <aside
+      className={cn(
+        "w-64 border-r bg-background/95 backdrop-blur hidden md:flex flex-col h-screen fixed top-0 left-0 bg-secondary/10 z-50 transition-transform duration-300 ease-out",
+        isOpen ? "translate-x-0" : "-translate-x-full"
+      )}
+    >
+      <div className="h-16 flex items-center justify-between gap-2 px-6 border-b">
+        <Link to="/dashboard" className="flex min-w-0 items-center gap-3">
           <div className="p-1.5 rounded-lg bg-primary shrink-0">
             <GraduationCap className="h-5 w-5 text-primary-foreground" />
           </div>
@@ -49,9 +72,12 @@ export function Sidebar() {
             JustPastLink
           </span>
         </Link>
+        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onToggle}>
+          <PanelLeftClose className="h-4 w-4" />
+          <span className="sr-only">Hide sidebar</span>
+        </Button>
       </div>
 
-      {/* Navigation Links */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {navItems.map((item) => {
           const isActive = location.pathname === item.to || location.pathname.startsWith(`${item.to}/`);
@@ -61,19 +87,18 @@ export function Sidebar() {
               to={item.to}
               className={cn(
                 "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors",
-                isActive 
-                  ? "bg-primary/10 text-primary" 
+                isActive
+                  ? "bg-primary/10 text-primary"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground"
               )}
             >
-              <item.icon className="h-4 w-4" />
+              <item.icon className="h-4 w-4 shrink-0" />
               {item.label}
             </Link>
           );
         })}
       </nav>
 
-      {/* User Area at Bottom */}
       {user && (
         <div className="p-4 border-t">
           <DropdownMenu>
@@ -84,7 +109,7 @@ export function Sidebar() {
                     {getInitials(user.full_name || user.email)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col items-start truncate text-left">
+                <div className="flex min-w-0 flex-col items-start truncate text-left">
                   <span className="text-sm font-medium truncate">{user.full_name || 'User'}</span>
                   <span className="text-xs text-muted-foreground truncate w-full">{user.email}</span>
                 </div>
