@@ -6,7 +6,6 @@ import {
   HelpCircle,
   LayoutDashboard,
   LogOut,
-  PanelLeftClose,
   Settings,
   User,
   Video,
@@ -33,10 +32,9 @@ export const navItems = [
 
 interface SidebarProps {
   isOpen: boolean;
-  onToggle: () => void;
 }
 
-export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+export function Sidebar({ isOpen }: SidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -63,7 +61,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         isOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
-      <div className="h-16 flex items-center justify-between gap-2 px-6 border-b">
+      <div className="h-16 flex items-center px-6 border-b">
         <Link to="/dashboard" className="flex min-w-0 items-center gap-3">
           <div className="p-1.5 rounded-lg bg-primary shrink-0">
             <GraduationCap className="h-5 w-5 text-primary-foreground" />
@@ -72,10 +70,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             JustPastLink
           </span>
         </Link>
-        <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={onToggle}>
-          <PanelLeftClose className="h-4 w-4" />
-          <span className="sr-only">Hide sidebar</span>
-        </Button>
       </div>
 
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">

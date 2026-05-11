@@ -113,6 +113,20 @@ export interface RegisterRequest {
   full_name: string;
 }
 
+export interface UserUpdateRequest {
+  full_name: string | null;
+}
+
+export interface EmailUpdateRequest {
+  email: string;
+  current_password: string;
+}
+
+export interface PasswordUpdateRequest {
+  current_password: string;
+  new_password: string;
+}
+
 export interface AuthResponse {
   access_token: string;
   token_type: string;

@@ -9,7 +9,7 @@ from app.core.security import (
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import AuthResponse, UserLogin
-from app.schemas.user import UserCreate
+from app.schemas.user import UserCreate, UserEmailUpdate, UserPasswordUpdate, UserUpdate
 
 
 class AuthService:
@@ -46,3 +46,36 @@ class AuthService:
 
         access_token = create_access_token(subject=str(user.id))
         return AuthResponse(access_token=access_token, user=user)
+
+    def update_user(self, user: User, user_in: UserUpdate) -> User:
+        data = user_in.model_dump(exclude_unset=True)
+
+        if "username" in data:
+            username = data["username"] or None
+            if username:
+                existing_username = self.user_repository.get_by_username(username)
+                if existing_username and existing_username.id != user.id:
+                    raise ValueError("User with this username already exists")
+            user.username = username
+
+        return self.user_repository.update(user)
+
+    def update_email(self, user: User, email_in: UserEmailUpdate) -> User:
+        if not verify_password(email_in.current_password, user.hashed_password):
+            raise ValueError("Current password is incorrect")
+
+        new_email = str(email_in.email)
+        existing_user = self.user_repository.get_by_email(new_email)
+        if existing_user and existing_user.id != user.id:
+            raise ValueError("User with this email already exists")
+
+        user.email = new_email
+        return self.user_repository.update(user)
+
+    def update_password(self, user: User, password_in: UserPasswordUpdate) -> User:
+        if not verify_password(password_in.current_password, user.hashed_password):
+            raise ValueError("Current password is incorrect")
+
+        validate_password_length(password_in.new_password)
+        user.hashed_password = get_password_hash(password_in.new_password)
+        return self.user_repository.update(user)
