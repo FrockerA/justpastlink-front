@@ -31,8 +31,8 @@ def main() -> None:
     # Use the same DATABASE_URL as the backend.
     db_url = os.getenv("DATABASE_URL")
     if not db_url:
-        # Fallback: load from app/.env if running without env loaded.
-        env_path = Path(__file__).resolve().parent / "app" / ".env"
+        # Fallback: load from backend/.env if running without env loaded.
+        env_path = Path(__file__).resolve().parent / ".env"
         if env_path.exists():
             for line in env_path.read_text(encoding="utf-8").splitlines():
                 line = line.strip()
@@ -43,7 +43,7 @@ def main() -> None:
                     break
 
     if not db_url:
-        raise RuntimeError("DATABASE_URL not set (and not found in app/.env)")
+        raise RuntimeError("DATABASE_URL not set (and not found in backend/.env)")
 
     migrations_dir = Path(__file__).resolve().parent / "migrations"
     up_sql_files = iter_migration_sql_files(migrations_dir)
@@ -66,4 +66,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

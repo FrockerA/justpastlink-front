@@ -14,7 +14,7 @@ export interface Video {
   original_filename: string;
   stored_filename: string;
   file_path: string;
-  file_size: number;
+  file_size: number | null;
   mime_type: string;
   duration_seconds: number | null;
   status: VideoStatus;

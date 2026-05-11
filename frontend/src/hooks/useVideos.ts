@@ -56,11 +56,14 @@ export function useVideos() {
 
 export function useVideo(videoId: number | null) {
   const [video, setVideo] = useState<Video | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(Boolean(videoId));
   const [error, setError] = useState<string | null>(null);
 
   const fetchVideo = useCallback(async () => {
-    if (!videoId) return;
+    if (!videoId) {
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {
