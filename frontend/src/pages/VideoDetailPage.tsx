@@ -33,7 +33,7 @@ export function VideoDetailPage() {
     setSearchParams({ tab: value });
   };
 
-  const formatDuration = (seconds: number | null) => {
+  const formatDuration = (seconds: number | null | undefined) => {
     if (!seconds) return 'Unknown duration';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -48,7 +48,10 @@ export function VideoDetailPage() {
     }
   };
 
-  const formatFileSize = (bytes: number) => {
+  const formatFileSize = (bytes: number | null | undefined) => {
+    if (bytes === null || bytes === undefined || !Number.isFinite(bytes)) {
+      return 'Unknown size';
+    }
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];

@@ -70,7 +70,8 @@ def get_video(
     return video
 
 
-@router.get("/", response_model=list[VideoResponse])
+@router.get("", response_model=list[VideoResponse])
+@router.get("/", response_model=list[VideoResponse], include_in_schema=False)
 def list_my_videos(
         db: Session = Depends(get_db),
         current_user: User = Depends(get_current_user),

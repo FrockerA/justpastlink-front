@@ -4,9 +4,8 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-# Always load this project's env file regardless of current working directory.
-# This matters for commands like `alembic upgrade head` run from repo root.
-ENV_PATH = Path(__file__).resolve().parent.parent / ".env"  # app/.env
+# Always load the backend env file regardless of the current working directory.
+ENV_PATH = Path(__file__).resolve().parents[2] / ".env"
 load_dotenv(dotenv_path=str(ENV_PATH), override=True)
 logger = logging.getLogger(__name__)
 
