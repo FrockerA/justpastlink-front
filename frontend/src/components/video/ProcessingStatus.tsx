@@ -102,6 +102,8 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     );
   }
 
+  const jobs = Array.isArray(status.jobs) ? status.jobs : [];
+
   const getStatusIcon = () => {
     switch (status.video_status) {
       case 'uploaded':
@@ -144,7 +146,7 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
     }
   };
 
-  const hasRunningJob = status.jobs.some((job) => ['pending', 'queued', 'processing', 'generating_lecture', 'generating_quiz'].includes(job.status));
+  const hasRunningJob = jobs.some((job) => ['pending', 'queued', 'processing', 'generating_lecture', 'generating_quiz'].includes(job.status));
   const hasAllContent = status.transcript_ready && status.lecture_ready && status.quiz_ready;
   const canStartProcessing = !hasAllContent && !hasRunningJob;
 
@@ -176,11 +178,11 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
         </div>
 
         {/* Processing Jobs */}
-        {status.jobs.length > 0 && (
+        {jobs.length > 0 && (
           <div className="space-y-3">
             <h4 className="text-sm font-medium text-muted-foreground">Processing Jobs</h4>
             <div className="space-y-2">
-              {status.jobs.map((job) => (
+              {jobs.map((job) => (
                 <div
                   key={job.id}
                   className="flex items-center justify-between p-3 border rounded-lg"

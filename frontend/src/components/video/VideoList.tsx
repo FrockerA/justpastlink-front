@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useVideos } from '@/hooks/useVideos';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -49,7 +49,6 @@ const statusLabels: Record<string, string> = {
 };
 
 export function VideoList({ onRefresh }: VideoListProps) {
-  const navigate = useNavigate();
   const { videos, isLoading, error, deleteVideo } = useVideos();
 
   const handleDelete = async (videoId: number) => {
@@ -137,76 +136,63 @@ export function VideoList({ onRefresh }: VideoListProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        {videos.map((video) => (
+        {videos.map((video) => {
+          const statusColor = statusColors[video.status] ?? 'bg-slate-500';
+          const statusLabel = statusLabels[video.status] ?? video.status ?? 'Unknown';
+
+          return (
           <div
             key={video.id}
-            onClick={() => navigate(`/videos/${video.id}`)}
-            className="flex items-center gap-4 p-4 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+            className="flex items-center border rounded-lg hover:bg-accent/50 transition-colors"
           >
-            <div className="p-3 rounded-lg bg-primary/10 shrink-0">
-              <Play className="h-5 w-5 text-primary" />
-            </div>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-medium truncate">{video.original_filename}</h3>
-                <Badge 
-                  variant="secondary" 
-                  className={`${statusColors[video.status]} text-white text-xs shrink-0`}
-                >
-                  {statusLabels[video.status]}
-                </Badge>
+            <Link
+              to={`/videos/${video.id}`}
+              className="flex min-w-0 flex-1 items-center gap-4 p-4"
+            >
+              <div className="p-3 rounded-lg bg-primary/10 shrink-0">
+                <Play className="h-5 w-5 text-primary" />
               </div>
-              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3 w-3" />
-                  {formatDuration(video.duration_seconds)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3 w-3" />
-                  {formatDate(video.created_at)}
-                </span>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <h3 className="font-medium truncate">{video.original_filename}</h3>
+                  <Badge
+                    variant="secondary"
+                    className={`${statusColor} text-white text-xs shrink-0`}
+                  >
+                    {statusLabel}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {formatDuration(video.duration_seconds)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {formatDate(video.created_at)}
+                  </span>
+                </div>
+              </div>
+            </Link>
+
+            <div className="flex items-center gap-2 shrink-0 pr-4">
               {video.status === 'completed' && (
                 <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/videos/${video.id}?tab=transcript`);
-                    }}
-                    title="View Transcript"
-                  >
-                    <FileText className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                    <Link to={`/videos/${video.id}?tab=transcript`} title="View Transcript">
+                      <FileText className="h-4 w-4" />
+                    </Link>
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/videos/${video.id}?tab=lecture`);
-                    }}
-                    title="View Lecture"
-                  >
-                    <BookOpen className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                    <Link to={`/videos/${video.id}?tab=lecture`} title="View Lecture">
+                      <BookOpen className="h-4 w-4" />
+                    </Link>
                   </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/videos/${video.id}?tab=quiz`);
-                    }}
-                    title="View Quiz"
-                  >
-                    <HelpCircle className="h-4 w-4" />
+                  <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                    <Link to={`/videos/${video.id}?tab=quiz`} title="View Quiz">
+                      <HelpCircle className="h-4 w-4" />
+                    </Link>
                   </Button>
                 </div>
               )}
@@ -217,7 +203,6 @@ export function VideoList({ onRefresh }: VideoListProps) {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8"
-                    onClick={(e) => e.stopPropagation()}
                   >
                     <MoreVertical className="h-4 w-4" />
                   </Button>
@@ -237,7 +222,8 @@ export function VideoList({ onRefresh }: VideoListProps) {
               </DropdownMenu>
             </div>
           </div>
-        ))}
+          );
+        })}
       </CardContent>
     </Card>
   );
