@@ -74,9 +74,9 @@ export function VideoDetailPage() {
     return (
       <MainLayout>
         <div className="space-y-6">
-          <Button variant="outline" onClick={() => navigate('/dashboard')}>
+          <Button variant="outline" onClick={() => navigate('/videos')}>
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            Back to Videos
           </Button>
           <Alert variant="destructive">
             <AlertDescription>
@@ -97,7 +97,7 @@ export function VideoDetailPage() {
             <Button 
               variant="ghost" 
               className="mb-2 -ml-4"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate('/videos')}
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back

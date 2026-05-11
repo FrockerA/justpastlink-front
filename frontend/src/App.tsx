@@ -5,6 +5,7 @@ import { LoginPage } from '@/pages/LoginPage';
 import { RegisterPage } from '@/pages/RegisterPage';
 import { WelcomePage } from '@/pages/WelcomePage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { MyVideosPage, NotesPage, ProfilePage, QuizzesPage, SettingsPage } from '@/pages/LearningPages';
 import { VideoDetailPage } from '@/pages/VideoDetailPage';
 import { VideoResultPage } from '@/pages/VideoResultPage';
 import { Toaster } from '@/components/ui/sonner';
@@ -38,6 +39,46 @@ function App() {
               }
             />
             <Route
+              path="/videos"
+              element={
+                <ProtectedRoute>
+                  <MyVideosPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notes"
+              element={
+                <ProtectedRoute>
+                  <NotesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/quizzes"
+              element={
+                <ProtectedRoute>
+                  <QuizzesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute>
+                  <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/videos/:videoId"
               element={
                 <ProtectedRoute>
@@ -55,8 +96,8 @@ function App() {
             />
 
             {/* Default Redirect */}
-            <Route path="/" element={<Navigate to="/welcome" replace />} />
-            <Route path="*" element={<Navigate to="/welcome" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </BrowserRouter>
         <Toaster position="top-right" />

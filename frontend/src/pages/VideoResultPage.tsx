@@ -68,7 +68,7 @@ export function VideoResultPage() {
   return (
     <MainLayout>
       <div className="space-y-6">
-        <Button variant="ghost" className="-ml-4" onClick={() => navigate('/dashboard')}>
+        <Button variant="ghost" className="-ml-4" onClick={() => navigate('/videos')}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
