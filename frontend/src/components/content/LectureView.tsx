@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { useLecture } from '@/hooks/useLecture';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { RichTextBlock } from '@/components/content/RichTextBlock';
 import { 
   Dialog,
   DialogContent,
@@ -24,6 +26,7 @@ import {
   Save, 
   X,
   FileText,
+  ListChecks,
   Sparkles
 } from 'lucide-react';
 
@@ -38,6 +41,7 @@ export function LectureView({ videoId }: LectureViewProps) {
   const [editedContent, setEditedContent] = useState('');
   const [editedSummary, setEditedSummary] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const summaryText = lecture?.summary?.trim() ?? '';
 
   const handleEdit = () => {
     if (lecture) {
@@ -131,19 +135,30 @@ export function LectureView({ videoId }: LectureViewProps) {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <div className="flex items-start justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                {lecture.title || 'Untitled Lecture'}
+      <Card className="overflow-hidden">
+        <CardHeader className="border-b bg-muted/30">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="min-w-0 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="rounded-md">
+                  <Sparkles className="h-3 w-3" />
+                  AI lecture
+                </Badge>
+                {lecture.status && (
+                  <Badge variant="outline" className="rounded-md capitalize">
+                    {lecture.status}
+                  </Badge>
+                )}
+              </div>
+              <CardTitle className="flex items-start gap-2 text-xl leading-tight tracking-normal">
+                <BookOpen className="mt-0.5 h-5 w-5 shrink-0" />
+                <span className="break-words">{lecture.title || 'Untitled Lecture'}</span>
               </CardTitle>
               <CardDescription>
                 Generated lecture from your video
               </CardDescription>
             </div>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 gap-2">
               <Button
                 variant="outline"
                 size="sm"
@@ -155,12 +170,22 @@ export function LectureView({ videoId }: LectureViewProps) {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="content" className="w-full">
+        <CardContent className="p-0">
+          {summaryText && (
+            <div className="border-b bg-background px-5 py-5 md:px-6">
+              <div className="mb-3 flex items-center gap-2 text-sm font-semibold tracking-normal">
+                <ListChecks className="h-4 w-4 text-primary" />
+                Key takeaways
+              </div>
+              <RichTextBlock text={summaryText} dense />
+            </div>
+          )}
+
+          <Tabs defaultValue="content" className="w-full p-5 md:p-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="content" className="flex items-center gap-2">
                 <BookOpen className="h-4 w-4" />
-                Lecture Content
+                Lecture
               </TabsTrigger>
               <TabsTrigger value="summary" className="flex items-center gap-2">
                 <FileText className="h-4 w-4" />
@@ -169,29 +194,17 @@ export function LectureView({ videoId }: LectureViewProps) {
             </TabsList>
             
             <TabsContent value="content" className="mt-4">
-              <ScrollArea className="h-[500px] w-full rounded-md border p-4">
-                <div className="prose prose-sm max-w-none">
-                  {lecture.content.split('\n').map((paragraph, index) => (
-                    <p key={index} className="mb-4">
-                      {paragraph}
-                    </p>
-                  ))}
+              <ScrollArea className="h-[560px] w-full rounded-md border bg-background">
+                <div className="px-5 py-5 md:px-6">
+                  <RichTextBlock text={lecture.content} />
                 </div>
               </ScrollArea>
             </TabsContent>
             
             <TabsContent value="summary" className="mt-4">
-              <ScrollArea className="h-[500px] w-full rounded-md border p-4">
-                <div className="prose prose-sm max-w-none">
-                  {lecture.summary ? (
-                    lecture.summary.split('\n').map((paragraph, index) => (
-                      <p key={index} className="mb-4">
-                        {paragraph}
-                      </p>
-                    ))
-                  ) : (
-                    <p className="text-muted-foreground">No summary available</p>
-                  )}
+              <ScrollArea className="h-[360px] w-full rounded-md border bg-muted/20">
+                <div className="px-5 py-5 md:px-6">
+                  <RichTextBlock text={summaryText} emptyText="No summary available" dense />
                 </div>
               </ScrollArea>
             </TabsContent>
