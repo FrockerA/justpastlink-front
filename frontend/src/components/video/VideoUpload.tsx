@@ -191,7 +191,7 @@ export function VideoUpload({ onUploadSuccess }: VideoUploadProps) {
           <Alert className="bg-green-50 border-green-200">
             <CheckCircle className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              Video added successfully. Processing has started.
+              Video added successfully. Processing has been queued.
             </AlertDescription>
           </Alert>
         )}
@@ -250,7 +250,7 @@ export function VideoUpload({ onUploadSuccess }: VideoUploadProps) {
                 <div className="rounded-lg border p-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Downloading from YouTube and starting the pipeline...
+                    Checking the YouTube link and queueing the pipeline...
                   </div>
                 </div>
               )}
