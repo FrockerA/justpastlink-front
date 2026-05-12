@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user, get_db
 from app.models.user import User
 from app.core.security import create_access_token
-from app.schemas.auth import AuthResponse, Token, UserLogin
-from app.schemas.user import UserCreate, UserResponse
+from app.schemas.auth import AuthResponse, UserLogin
+from app.schemas.user import UserCreate, UserEmailUpdate, UserPasswordUpdate, UserResponse, UserUpdate
 from app.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -47,3 +47,43 @@ def login(
 @router.get("/me", response_model=UserResponse)
 def read_current_user(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.patch("/me", response_model=UserResponse)
+def update_current_user(
+    user_in: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    auth_service = AuthService(db)
+    try:
+        return auth_service.update_user(current_user, user_in)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.patch("/me/email", response_model=UserResponse)
+def update_current_user_email(
+    email_in: UserEmailUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    auth_service = AuthService(db)
+    try:
+        return auth_service.update_email(current_user, email_in)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+
+
+@router.patch("/me/password", status_code=status.HTTP_204_NO_CONTENT)
+def update_current_user_password(
+    password_in: UserPasswordUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    auth_service = AuthService(db)
+    try:
+        auth_service.update_password(current_user, password_in)
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    return None

@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
+import { useTheme } from 'next-themes';
+import { toast } from 'sonner';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { VideoUpload } from '@/components/video/VideoUpload';
 import { VideoList } from '@/components/video/VideoList';
@@ -7,24 +9,40 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useAuth } from '@/hooks/useAuth';
+import { usePreferences } from '@/hooks/usePreferences';
 import { useVideos } from '@/hooks/useVideos';
+import { getApiErrorDetail } from '@/lib/api';
 import { cn, format } from '@/lib/utils';
 import {
   Bell,
   BookOpen,
   CheckCircle2,
+  Edit2,
   FileText,
   HelpCircle,
+  KeyRound,
   Lock,
   Mail,
+  Moon,
   Plus,
   RefreshCw,
+  Save,
   Settings,
   Shield,
+  Sun,
   User,
   Video,
 } from 'lucide-react';
@@ -237,9 +255,68 @@ export function QuizzesPage() {
 }
 
 export function SettingsPage() {
-  const [emailUpdates, setEmailUpdates] = useState(true);
-  const [autoOpenResults, setAutoOpenResults] = useState(false);
-  const [compactLists, setCompactLists] = useState(false);
+  const { user, updateEmail, updatePassword } = useAuth();
+  const { preferences, setPreference } = usePreferences();
+  const { theme, setTheme } = useTheme();
+  const [emailDialogOpen, setEmailDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
+  const [newEmail, setNewEmail] = useState(user?.email || '');
+  const [emailPassword, setEmailPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const activeTheme = theme === 'dark' ? 'dark' : 'light';
+
+  useEffect(() => {
+    setNewEmail(user?.email || '');
+  }, [user?.email]);
+
+  const handleEmailSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSavingEmail(true);
+
+    try {
+      await updateEmail({
+        email: newEmail.trim(),
+        current_password: emailPassword,
+      });
+      toast.success('Email updated');
+      setEmailDialogOpen(false);
+      setEmailPassword('');
+    } catch (error) {
+      toast.error(getApiErrorDetail(error, 'Failed to update email'));
+    } finally {
+      setIsSavingEmail(false);
+    }
+  };
+
+  const handlePasswordSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (newPassword !== confirmPassword) {
+      toast.error('New passwords do not match');
+      return;
+    }
+
+    setIsSavingPassword(true);
+    try {
+      await updatePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      toast.success('Password updated');
+      setPasswordDialogOpen(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (error) {
+      toast.error(getApiErrorDetail(error, 'Failed to update password'));
+    } finally {
+      setIsSavingPassword(false);
+    }
+  };
 
   return (
     <MainLayout>
@@ -263,13 +340,53 @@ export function SettingsPage() {
                 <Label htmlFor="email-updates" className="text-sm font-medium">
                   Email updates
                 </Label>
-                <Switch id="email-updates" checked={emailUpdates} onCheckedChange={setEmailUpdates} />
+                <Switch
+                  id="email-updates"
+                  checked={preferences.emailUpdates}
+                  onCheckedChange={(checked) => setPreference('emailUpdates', checked)}
+                />
               </div>
               <div className="flex items-center justify-between gap-4 rounded-md border p-4">
                 <Label htmlFor="auto-open-results" className="text-sm font-medium">
                   Auto-open results
                 </Label>
-                <Switch id="auto-open-results" checked={autoOpenResults} onCheckedChange={setAutoOpenResults} />
+                <Switch
+                  id="auto-open-results"
+                  checked={preferences.autoOpenResults}
+                  onCheckedChange={(checked) => setPreference('autoOpenResults', checked)}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="h-5 w-5" />
+                Account
+              </CardTitle>
+              <CardDescription>Email and password</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between gap-4 rounded-md border p-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Email</p>
+                  <p className="truncate text-sm text-muted-foreground">{user?.email || 'Not set'}</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)}>
+                  <Mail className="h-4 w-4" />
+                  Change
+                </Button>
+              </div>
+              <div className="flex items-center justify-between gap-4 rounded-md border p-4">
+                <div className="min-w-0">
+                  <p className="text-sm font-medium">Password</p>
+                  <p className="text-sm text-muted-foreground">Protected with your current password</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setPasswordDialogOpen(true)}>
+                  <KeyRound className="h-4 w-4" />
+                  Change
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -287,7 +404,30 @@ export function SettingsPage() {
                 <Label htmlFor="compact-lists" className="text-sm font-medium">
                   Compact video lists
                 </Label>
-                <Switch id="compact-lists" checked={compactLists} onCheckedChange={setCompactLists} />
+                <Switch
+                  id="compact-lists"
+                  checked={preferences.compactLists}
+                  onCheckedChange={(checked) => setPreference('compactLists', checked)}
+                />
+              </div>
+              <div className="rounded-md border p-4">
+                <Label className="text-sm font-medium">Theme</Label>
+                <ToggleGroup
+                  type="single"
+                  variant="outline"
+                  value={activeTheme}
+                  onValueChange={(value) => value && setTheme(value)}
+                  className="mt-3 grid w-full grid-cols-2"
+                >
+                  <ToggleGroupItem value="light" className="w-full">
+                    <Sun className="h-4 w-4" />
+                    Light
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="dark" className="w-full">
+                    <Moon className="h-4 w-4" />
+                    Dark
+                  </ToggleGroupItem>
+                </ToggleGroup>
               </div>
               <div className="rounded-md border p-4">
                 <Label htmlFor="default-view" className="text-sm font-medium">
@@ -298,15 +438,138 @@ export function SettingsPage() {
             </CardContent>
           </Card>
         </div>
+
+        <Dialog open={emailDialogOpen} onOpenChange={setEmailDialogOpen}>
+          <DialogContent>
+            <form onSubmit={handleEmailSubmit} className="space-y-4">
+              <DialogHeader>
+                <DialogTitle>Change email</DialogTitle>
+                <DialogDescription>Confirm with your current password.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                <Label htmlFor="new-email">New email</Label>
+                <Input
+                  id="new-email"
+                  type="email"
+                  value={newEmail}
+                  onChange={(event) => setNewEmail(event.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email-current-password">Current password</Label>
+                <Input
+                  id="email-current-password"
+                  type="password"
+                  value={emailPassword}
+                  onChange={(event) => setEmailPassword(event.target.value)}
+                  minLength={8}
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEmailDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSavingEmail}>
+                  {isSavingEmail ? 'Saving...' : 'Save email'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen}>
+          <DialogContent>
+            <form onSubmit={handlePasswordSubmit} className="space-y-4">
+              <DialogHeader>
+                <DialogTitle>Change password</DialogTitle>
+                <DialogDescription>Use at least 8 characters.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                <Label htmlFor="current-password">Current password</Label>
+                <Input
+                  id="current-password"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(event) => setCurrentPassword(event.target.value)}
+                  minLength={8}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="new-password">New password</Label>
+                <Input
+                  id="new-password"
+                  type="password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  minLength={8}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirm new password</Label>
+                <Input
+                  id="confirm-password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  minLength={8}
+                  required
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setPasswordDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isSavingPassword}>
+                  {isSavingPassword ? 'Saving...' : 'Save password'}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );
 }
 
 export function ProfilePage() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
   const { videos, isLoading } = useVideos();
   const completedCount = videos.filter((video) => video.status === 'completed').length;
+  const processingCount = videos.filter((video) =>
+    ['uploaded', 'queued', 'processing', 'generating_lecture', 'generating_quiz'].includes(video.status)
+  ).length;
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [fullName, setFullName] = useState(user?.full_name || '');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+
+  useEffect(() => {
+    setFullName(user?.full_name || '');
+  }, [user?.full_name]);
+
+  const handleProfileSave = async () => {
+    setIsSavingProfile(true);
+
+    try {
+      await updateProfile({ full_name: fullName.trim() || null });
+      toast.success('Profile updated');
+      setIsEditingProfile(false);
+    } catch (error) {
+      toast.error(getApiErrorDetail(error, 'Failed to update profile'));
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
+  const handleProfileEditToggle = () => {
+    if (isEditingProfile) {
+      setFullName(user?.full_name || '');
+    }
+    setIsEditingProfile((current) => !current);
+  };
 
   return (
     <MainLayout>
@@ -318,23 +581,35 @@ export function ProfilePage() {
 
         <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
           <Card>
-            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-center">
-              <Avatar className="h-16 w-16">
-                <AvatarFallback className="bg-primary/10 text-xl font-semibold text-primary">
-                  {getInitials(user?.full_name || user?.email)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="min-w-0">
-                <CardTitle className="truncate">{user?.full_name || 'User'}</CardTitle>
-                <CardDescription className="truncate">{user?.email}</CardDescription>
+            <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex min-w-0 items-center gap-4">
+                <Avatar className="h-16 w-16 shrink-0">
+                  <AvatarFallback className="bg-primary/10 text-xl font-semibold text-primary">
+                    {getInitials(user?.full_name || user?.email)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <CardTitle className="truncate">{user?.full_name || 'User'}</CardTitle>
+                  <CardDescription className="truncate">{user?.email}</CardDescription>
+                </div>
               </div>
+              <Button variant="outline" size="sm" onClick={handleProfileEditToggle}>
+                <Edit2 className="h-4 w-4" />
+                {isEditingProfile ? 'Cancel' : 'Edit profile'}
+              </Button>
             </CardHeader>
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="profile-name">Full name</Label>
                 <div className="relative">
                   <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                  <Input id="profile-name" className="pl-10" value={user?.full_name || ''} readOnly />
+                  <Input
+                    id="profile-name"
+                    className="pl-10"
+                    value={isEditingProfile ? fullName : user?.full_name || ''}
+                    onChange={(event) => setFullName(event.target.value)}
+                    readOnly={!isEditingProfile}
+                  />
                 </div>
               </div>
               <div className="space-y-2">
@@ -352,6 +627,14 @@ export function ProfilePage() {
                 <Label htmlFor="profile-status">Status</Label>
                 <Input id="profile-status" value={user?.is_active ? 'Active' : 'Inactive'} readOnly />
               </div>
+              {isEditingProfile && (
+                <div className="flex justify-end sm:col-span-2">
+                  <Button onClick={handleProfileSave} disabled={isSavingProfile}>
+                    <Save className="h-4 w-4" />
+                    {isSavingProfile ? 'Saving...' : 'Save changes'}
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
@@ -364,9 +647,19 @@ export function ProfilePage() {
                 </CardTitle>
                 <CardDescription>{isLoading ? 'Loading...' : `${videos.length} videos`}</CardDescription>
               </CardHeader>
-              <CardContent>
-                <p className="text-2xl font-bold">{isLoading ? '...' : completedCount}</p>
-                <p className="text-sm text-muted-foreground">completed</p>
+              <CardContent className="grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-md border p-3">
+                  <p className="text-xl font-bold">{isLoading ? '...' : videos.length}</p>
+                  <p className="text-xs text-muted-foreground">total</p>
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-xl font-bold">{isLoading ? '...' : completedCount}</p>
+                  <p className="text-xs text-muted-foreground">ready</p>
+                </div>
+                <div className="rounded-md border p-3">
+                  <p className="text-xl font-bold">{isLoading ? '...' : processingCount}</p>
+                  <p className="text-xs text-muted-foreground">active</p>
+                </div>
               </CardContent>
             </Card>
             <Card>

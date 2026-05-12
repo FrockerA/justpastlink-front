@@ -16,3 +16,5 @@ def test_auth_routes_are_registered():
     assert "/auth/register" in paths
     assert "/auth/login" in paths
     assert "/auth/me" in paths
+    assert "/auth/me/email" in paths
+    assert "/auth/me/password" in paths
