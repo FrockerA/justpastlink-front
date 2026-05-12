@@ -14,6 +14,10 @@ from app.api.routes import (
     transcripts_router,
     videos_router,
 )
+from app.core.observability import init_observability
+
+
+init_observability()
 
 app = FastAPI(title="justpastlink API")
 

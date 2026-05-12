@@ -1,35 +1,147 @@
-import shutil
+from __future__ import annotations
+
+import json
+import subprocess
 from pathlib import Path
 from uuid import uuid4
 
 from fastapi import UploadFile
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.video import Video
-from app.services.youtube_service import download_youtube_audio
+from app.services.youtube_service import get_youtube_metadata
 
 UPLOAD_DIR = Path("uploads")
 
-# Разрешённые MIME типы для видео
 ALLOWED_MIME_TYPES = {
     "video/mp4",
     "video/mpeg",
     "video/quicktime",
     "video/x-msvideo",
-    "video/x-matroska",  # .mkv
+    "video/x-matroska",
     "video/webm",
 }
 
+SUPPORTED_CODECS = {
+    "aac",
+    "av1",
+    "h264",
+    "h265",
+    "hevc",
+    "m4a",
+    "mp3",
+    "mpeg4",
+    "opus",
+    "pcm_s16le",
+    "vorbis",
+    "vp8",
+    "vp9",
+}
 
-def save_video(db: Session, file: UploadFile, user_id: int) -> Video:  # ← добавили user_id
+
+class VideoValidationError(ValueError):
+    def __init__(self, message: str, code: str = "video_validation_failed") -> None:
+        super().__init__(message)
+        self.code = code
+
+
+def _probe_media(path: Path) -> dict | None:
+    try:
+        result = subprocess.run(
+            [
+                "ffprobe",
+                "-v",
+                "error",
+                "-show_entries",
+                "format=duration:stream=codec_name,codec_type",
+                "-of",
+                "json",
+                str(path),
+            ],
+            capture_output=True,
+            check=True,
+            text=True,
+            timeout=20,
+        )
+    except (FileNotFoundError, subprocess.SubprocessError):
+        if settings.require_ffprobe_validation:
+            raise VideoValidationError(
+                "Media validation is unavailable because ffprobe is not installed",
+                "ffprobe_unavailable",
+            )
+        return None
+
+    try:
+        return json.loads(result.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise VideoValidationError("Could not read media metadata", "media_metadata_invalid") from exc
+
+
+def _validate_media_file(path: Path) -> int | None:
+    if not path.exists() or path.stat().st_size == 0:
+        raise VideoValidationError("Uploaded file is empty", "file_empty")
+    if path.stat().st_size > settings.max_upload_bytes:
+        raise VideoValidationError("File size must be less than 500MB", "file_too_large")
+
+    metadata = _probe_media(path)
+    if metadata is None:
+        return None
+
+    streams = metadata.get("streams") or []
+    if not streams:
+        raise VideoValidationError("No playable audio or video stream was found", "media_no_streams")
+
+    codecs = {
+        stream.get("codec_name")
+        for stream in streams
+        if stream.get("codec_type") in {"audio", "video"} and stream.get("codec_name")
+    }
+    unsupported = codecs - SUPPORTED_CODECS
+    if unsupported:
+        raise VideoValidationError(
+            f"Unsupported media codec: {', '.join(sorted(unsupported))}",
+            "media_codec_unsupported",
+        )
+
+    raw_duration = (metadata.get("format") or {}).get("duration")
+    if raw_duration is None:
+        return None
+
+    try:
+        duration_seconds = int(float(raw_duration))
+    except (TypeError, ValueError):
+        return None
+
+    if duration_seconds > settings.max_video_duration_seconds:
+        raise VideoValidationError("Video is too long for processing", "video_too_long")
+
+    return duration_seconds
+
+
+def _copy_upload_with_limit(file: UploadFile, destination: Path) -> int:
+    total = 0
+    with destination.open("wb") as buffer:
+        while True:
+            chunk = file.file.read(1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > settings.max_upload_bytes:
+                raise VideoValidationError("File size must be less than 500MB", "file_too_large")
+            buffer.write(chunk)
+    return total
+
+
+def save_video(db: Session, file: UploadFile, user_id: int) -> Video:
     if file is None or not file.filename:
         raise ValueError("Uploaded file is required")
 
-    # Валидация MIME типа
     if file.content_type not in ALLOWED_MIME_TYPES:
-        raise ValueError(
+        raise VideoValidationError(
             f"Invalid file type: {file.content_type}. "
-            f"Allowed types: {', '.join(ALLOWED_MIME_TYPES)}"
+            f"Allowed types: {', '.join(sorted(ALLOWED_MIME_TYPES))}",
+            "file_mime_unsupported",
         )
 
     UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -39,16 +151,17 @@ def save_video(db: Session, file: UploadFile, user_id: int) -> Video:  # ← д�
     destination = UPLOAD_DIR / stored_filename
 
     try:
-        with destination.open("wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+        file_size = _copy_upload_with_limit(file, destination)
+        duration_seconds = _validate_media_file(destination)
 
         video = Video(
-            user_id=user_id,  # ← устанавливаем user_id
+            user_id=user_id,
             original_filename=file.filename,
             stored_filename=stored_filename,
             file_path=str(destination),
-            file_size=destination.stat().st_size,
+            file_size=file_size,
             mime_type=file.content_type,
+            duration_seconds=duration_seconds,
             status="uploaded",
         )
 
@@ -72,7 +185,7 @@ def get_video_by_id(db: Session, video_id: int) -> Video | None:
 
 
 def get_user_videos(db: Session, user_id: int) -> list[Video]:
-    """Получить все видео пользователя."""
+    """Return all videos owned by a user."""
     return (
         db.query(Video)
         .filter(Video.user_id == user_id)
@@ -95,27 +208,21 @@ def delete_video(db: Session, video: Video) -> None:
 
 
 def save_youtube_video(db: Session, youtube_url: str, user_id: int) -> Video:
-    """
-    Сохраняет видео из YouTube.
-    Использует ту же папку UPLOAD_DIR, что и save_video.
-    """
     if not youtube_url:
         raise ValueError("YouTube URL is required")
 
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+    metadata = get_youtube_metadata(youtube_url)
+    stored_filename = f"youtube-{uuid4().hex}.url"
 
     try:
-        # Скачиваем аудио
-        yt_data = download_youtube_audio(youtube_url, str(UPLOAD_DIR))
-
-        # Создаем запись в БД точно так же, как в save_video
         video = Video(
             user_id=user_id,
-            original_filename=yt_data["original_filename"],
-            stored_filename=yt_data["stored_filename"],
-            file_path=yt_data["file_path"],
-            file_size=yt_data["file_size"],
-            mime_type=yt_data["mime_type"],
+            original_filename=metadata["title"],
+            stored_filename=stored_filename,
+            file_path=metadata["webpage_url"],
+            file_size=None,
+            mime_type="application/x.youtube-url",
+            duration_seconds=metadata.get("duration_seconds"),
             status="uploaded",
         )
 

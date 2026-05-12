@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { usePreferences } from '@/hooks/usePreferences';
 import { videosApi } from '@/lib/api';
 import type { VideoStatus } from '@/types';
 
@@ -11,13 +10,12 @@ const POLL_INTERVAL_MS = 7000;
 export function GlobalProcessingNotifier() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { preferences } = usePreferences();
   const previousStatuses = useRef<Map<number, VideoStatus>>(new Map());
   const notifiedVideos = useRef<Set<number>>(new Set());
   const initialized = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated || !preferences.autoOpenResults) {
+    if (!isAuthenticated) {
       initialized.current = false;
       previousStatuses.current.clear();
       return;
@@ -70,7 +68,7 @@ export function GlobalProcessingNotifier() {
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [isAuthenticated, navigate, preferences.autoOpenResults]);
+  }, [isAuthenticated, navigate]);
 
   return null;
 }
