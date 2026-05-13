@@ -3,9 +3,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 const STORAGE_KEY = 'justpastlink.preferences';
 
 export interface UserPreferences {
-  emailUpdates: boolean;
+  notificationsEnabled: boolean;
   autoOpenResults: boolean;
-  compactLists: boolean;
 }
 
 interface PreferencesContextType {
@@ -14,9 +13,8 @@ interface PreferencesContextType {
 }
 
 const defaultPreferences: UserPreferences = {
-  emailUpdates: true,
+  notificationsEnabled: true,
   autoOpenResults: false,
-  compactLists: false,
 };
 
 const PreferencesContext = createContext<PreferencesContextType | undefined>(undefined);
