@@ -49,7 +49,7 @@ export function GlobalProcessingNotifier() {
             description: video.original_filename,
             action: {
               label: 'Open',
-              onClick: () => navigate(`/videos/${video.id}/result`),
+              onClick: () => navigate(`/videos/${video.id}?tab=lecture`),
             },
             duration: 12000,
           });
