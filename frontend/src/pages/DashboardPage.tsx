@@ -112,7 +112,7 @@ export function DashboardPage() {
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { value: 'all', label: 'All' },
+                  { value: 'all', label: 'Recent' },
                   { value: 'processing', label: 'Processing' },
                   { value: 'failed', label: 'Failed' },
                 ].map((item) => (

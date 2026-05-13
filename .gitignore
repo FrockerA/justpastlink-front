@@ -24,6 +24,7 @@ MANIFEST
 *.spec
 pip-log.txt
 pip-delete-this-directory.txt
+backend/get-pip.py
 
 # Test and type-check caches
 htmlcov/
