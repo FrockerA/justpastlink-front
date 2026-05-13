@@ -7,7 +7,7 @@ from app.services.qwen_client import call_qwen_json
 
 
 QUIZ_SYSTEM_PROMPT = """You are an expert educator creating multiple choice quiz questions.
-Given a lecture text, generate exactly 5 quiz questions in the same language as the lecture.
+Given a lecture text, generate exactly 15 quiz questions in the same language as the lecture.
 
 Respond ONLY with a valid JSON array. No explanation, no markdown, no extra text.
 Each item in the array must have these fields:
