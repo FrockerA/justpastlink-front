@@ -1,11 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { VideoUpload } from '@/components/video/VideoUpload';
 import { VideoList } from '@/components/video/VideoList';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +35,7 @@ import {
   HelpCircle,
   KeyRound,
   Lock,
+  LogOut,
   Mail,
   Moon,
   Plus,
@@ -45,6 +46,7 @@ import {
   Sun,
   User,
   Video,
+  Camera,
 } from 'lucide-react';
 
 const completedStatuses = ['completed'];
@@ -338,12 +340,12 @@ export function SettingsPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between gap-4 rounded-md border p-4">
                 <Label htmlFor="email-updates" className="text-sm font-medium">
-                  Email updates
+                  Notifications
                 </Label>
                 <Switch
-                  id="email-updates"
-                  checked={preferences.emailUpdates}
-                  onCheckedChange={(checked) => setPreference('emailUpdates', checked)}
+                  id="notifications-enabled"
+                  checked={preferences.notificationsEnabled}
+                  onCheckedChange={(checked) => setPreference('notificationsEnabled', checked)}
                 />
               </div>
               <div className="flex items-center justify-between gap-4 rounded-md border p-4">
@@ -397,19 +399,9 @@ export function SettingsPage() {
                 <Settings className="h-5 w-5" />
                 Display
               </CardTitle>
-              <CardDescription>Interface density and defaults</CardDescription>
+              <CardDescription>Appearance preferences</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between gap-4 rounded-md border p-4">
-                <Label htmlFor="compact-lists" className="text-sm font-medium">
-                  Compact video lists
-                </Label>
-                <Switch
-                  id="compact-lists"
-                  checked={preferences.compactLists}
-                  onCheckedChange={(checked) => setPreference('compactLists', checked)}
-                />
-              </div>
               <div className="rounded-md border p-4">
                 <Label className="text-sm font-medium">Theme</Label>
                 <ToggleGroup
@@ -428,12 +420,6 @@ export function SettingsPage() {
                     Dark
                   </ToggleGroupItem>
                 </ToggleGroup>
-              </div>
-              <div className="rounded-md border p-4">
-                <Label htmlFor="default-view" className="text-sm font-medium">
-                  Default video view
-                </Label>
-                <Input id="default-view" className="mt-2" value="Status" readOnly />
               </div>
             </CardContent>
           </Card>
@@ -536,7 +522,7 @@ export function SettingsPage() {
 }
 
 export function ProfilePage() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, logout } = useAuth();
   const { videos, isLoading } = useVideos();
   const completedCount = videos.filter((video) => video.status === 'completed').length;
   const processingCount = videos.filter((video) =>
@@ -545,6 +531,9 @@ export function ProfilePage() {
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [fullName, setFullName] = useState(user?.full_name || '');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileAvatar, setProfileAvatar] = useState<string | null>(() => window.localStorage.getItem('justpastlink.profile_avatar'));
+  const [avatarDialogOpen, setAvatarDialogOpen] = useState(false);
+  const [pendingAvatar, setPendingAvatar] = useState<string | null>(profileAvatar);
 
   useEffect(() => {
     setFullName(user?.full_name || '');
@@ -571,6 +560,35 @@ export function ProfilePage() {
     setIsEditingProfile((current) => !current);
   };
 
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setPendingAvatar(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleAvatarSave = () => {
+    if (pendingAvatar) {
+      window.localStorage.setItem('justpastlink.profile_avatar', pendingAvatar);
+    } else {
+      window.localStorage.removeItem('justpastlink.profile_avatar');
+    }
+    setProfileAvatar(pendingAvatar);
+    setAvatarDialogOpen(false);
+    toast.success('Profile photo updated');
+  };
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/login';
+  };
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -583,11 +601,17 @@ export function ProfilePage() {
           <Card>
             <CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex min-w-0 items-center gap-4">
+                <button type="button" onClick={() => setAvatarDialogOpen(true)} className="relative group rounded-full">
                 <Avatar className="h-16 w-16 shrink-0">
+                  {profileAvatar ? <AvatarImage src={profileAvatar} alt="Profile photo" /> : null}
                   <AvatarFallback className="bg-primary/10 text-xl font-semibold text-primary">
                     {getInitials(user?.full_name || user?.email)}
                   </AvatarFallback>
                 </Avatar>
+                <span className="absolute inset-0 hidden items-center justify-center rounded-full bg-black/50 text-white text-xs group-hover:flex">
+                  <Camera className="h-4 w-4" />
+                </span>
+                </button>
                 <div className="min-w-0">
                   <CardTitle className="truncate">{user?.full_name || 'User'}</CardTitle>
                   <CardDescription className="truncate">{user?.email}</CardDescription>
@@ -677,10 +701,35 @@ export function ProfilePage() {
                     Open Settings
                   </Link>
                 </Button>
+                <Button variant="destructive" className="w-full justify-start mt-2" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log out
+                </Button>
               </CardContent>
             </Card>
           </div>
         </div>
+        <Dialog open={avatarDialogOpen} onOpenChange={setAvatarDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Profile photo</DialogTitle>
+              <DialogDescription>Upload a new profile photo and save it.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <Avatar className="h-24 w-24">
+                {pendingAvatar ? <AvatarImage src={pendingAvatar} alt="Profile photo preview" /> : null}
+                <AvatarFallback className="bg-primary/10 text-2xl font-semibold text-primary">
+                  {getInitials(user?.full_name || user?.email)}
+                </AvatarFallback>
+              </Avatar>
+              <Input type="file" accept="image/*" onChange={handleAvatarFileChange} />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAvatarDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleAvatarSave}>Save photo</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </MainLayout>
   );
