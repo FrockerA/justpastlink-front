@@ -282,8 +282,8 @@ export function ProcessingStatus({ videoId }: ProcessingStatusProps) {
               return (
                 <div
                   key={item.label}
-                  className={`rounded-lg border p-3 text-center ${
-                    item.ready ? 'border-green-200 bg-green-50' : ''
+                  className={`rounded-lg border border-border bg-muted/40 p-3 text-center dark:bg-zinc-800/70 ${
+                    item.ready ? 'border-green-500/40 bg-muted/60 dark:border-green-700 dark:bg-zinc-700/60' : ''
                   }`}
                 >
                   <Icon
