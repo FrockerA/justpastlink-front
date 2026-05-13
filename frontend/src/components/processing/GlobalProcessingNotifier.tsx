@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { usePreferences } from '@/hooks/usePreferences';
 import { videosApi } from '@/lib/api';
 import type { VideoStatus } from '@/types';
 
@@ -10,6 +11,7 @@ const POLL_INTERVAL_MS = 7000;
 export function GlobalProcessingNotifier() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { preferences } = usePreferences();
   const previousStatuses = useRef<Map<number, VideoStatus>>(new Map());
   const notifiedVideos = useRef<Set<number>>(new Set());
   const initialized = useRef(false);
@@ -45,14 +47,21 @@ export function GlobalProcessingNotifier() {
           }
 
           notifiedVideos.current.add(video.id);
-          toast.success('Lecture is ready', {
-            description: video.original_filename,
-            action: {
-              label: 'Open',
-              onClick: () => navigate(`/videos/${video.id}?tab=lecture`),
-            },
-            duration: 12000,
-          });
+
+          if (preferences.notificationsEnabled) {
+            toast.success('Lecture is ready', {
+              description: video.original_filename,
+              action: {
+                label: 'Open',
+                onClick: () => navigate(`/videos/${video.id}?tab=lecture`),
+              },
+              duration: 12000,
+            });
+          }
+
+          if (preferences.autoOpenResults) {
+            navigate(`/videos/${video.id}?tab=lecture`);
+          }
         });
 
         previousStatuses.current = nextStatuses;
@@ -68,7 +77,7 @@ export function GlobalProcessingNotifier() {
       isMounted = false;
       window.clearInterval(intervalId);
     };
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, preferences.autoOpenResults, preferences.notificationsEnabled]);
 
   return null;
 }

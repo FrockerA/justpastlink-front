@@ -1,25 +1,14 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
+import { Link, useLocation } from 'react-router-dom';
 import {
   FileText,
   GraduationCap,
   HelpCircle,
   LayoutDashboard,
-  LogOut,
   Settings,
   User,
   Video,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 export const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -35,24 +24,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen }: SidebarProps) {
-  const { user, logout } = useAuth();
   const location = useLocation();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  const getInitials = (name: string) => {
-    if (!name) return 'U';
-    return name
-      .split(' ')
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   return (
     <aside
@@ -92,41 +64,6 @@ export function Sidebar({ isOpen }: SidebarProps) {
           );
         })}
       </nav>
-
-      {user && (
-        <div className="p-4 border-t">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="w-full justify-start px-2 hover:bg-accent h-auto py-2">
-                <Avatar className="h-8 w-8 mr-3 shrink-0">
-                  <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                    {getInitials(user.full_name || user.email)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex min-w-0 flex-col items-start truncate text-left">
-                  <span className="text-sm font-medium truncate">{user.full_name || 'User'}</span>
-                  <span className="text-xs text-muted-foreground truncate w-full">{user.email}</span>
-                </div>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56 mb-2" align="start">
-              <DropdownMenuItem onClick={() => navigate('/profile')}>
-                <User className="mr-2 h-4 w-4" />
-                Profile
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/settings')}>
-                <Settings className="mr-2 h-4 w-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:bg-destructive/10">
-                <LogOut className="mr-2 h-4 w-4 text-destructive" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      )}
     </aside>
   );
 }
