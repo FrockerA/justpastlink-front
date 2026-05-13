@@ -89,6 +89,24 @@ export interface QuizQuestion {
   explanation: string;
 }
 
+export type QuizDifficulty = 'easy' | 'medium' | 'hard' | 'mixed';
+
+export type QuizMode = 'practice' | 'exam' | 'flashcards';
+
+export type QuizQuestionLimit = '5' | '10' | '15' | 'all';
+
+export interface QuizAttempt {
+  id: string;
+  video_id: number;
+  completed_at: string;
+  mode: QuizMode;
+  difficulty: QuizDifficulty;
+  question_count: number;
+  score: number | null;
+  total: number;
+  duration_seconds: number;
+}
+
 export interface QuizApiResponse {
   id: number;
   video_id: number;

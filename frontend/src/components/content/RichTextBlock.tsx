@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 type RichBlock =
-  | { type: 'heading'; level: 2 | 3; text: string }
+  | { type: 'heading'; level: 1 | 2 | 3; text: string }
   | { type: 'paragraph'; text: string }
   | { type: 'list'; ordered: boolean; items: string[] }
   | { type: 'quote'; text: string };
@@ -13,11 +13,37 @@ interface RichTextBlockProps {
   className?: string;
 }
 
+function extractDisplayText(text: string) {
+  const trimmed = text.trim();
+
+  try {
+    const parsed: unknown = JSON.parse(trimmed);
+    if (parsed && typeof parsed === 'object' && 'content' in parsed) {
+      const content = (parsed as { content?: unknown }).content;
+      if (typeof content === 'string') {
+        return content;
+      }
+    }
+  } catch {
+    // Not JSON; render it as normal markdown-ish lecture text.
+  }
+
+  return trimmed;
+}
+
+function normalizeRichText(text: string) {
+  return extractDisplayText(text)
+    .replace(/\\r\\n/g, '\n')
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\n');
+}
+
 function parseRichText(text: string): RichBlock[] {
   const blocks: RichBlock[] = [];
   const paragraphLines: string[] = [];
   let listItems: string[] = [];
   let listOrdered = false;
+  const normalizedText = normalizeRichText(text);
 
   const flushParagraph = () => {
     if (paragraphLines.length === 0) return;
@@ -31,7 +57,7 @@ function parseRichText(text: string): RichBlock[] {
     listItems = [];
   };
 
-  for (const line of text.split(/\r?\n/)) {
+  for (const line of normalizedText.split(/\r?\n/)) {
     const trimmed = line.trim();
 
     if (!trimmed) {
@@ -40,13 +66,13 @@ function parseRichText(text: string): RichBlock[] {
       continue;
     }
 
-    const headingMatch = trimmed.match(/^(#{2,3})\s+(.+)$/);
+    const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
     if (headingMatch) {
       flushParagraph();
       flushList();
       blocks.push({
         type: 'heading',
-        level: headingMatch[1].length as 2 | 3,
+        level: headingMatch[1].length as 1 | 2 | 3,
         text: headingMatch[2].trim(),
       });
       continue;
@@ -124,14 +150,14 @@ export function RichTextBlock({
     >
       {blocks.map((block, index) => {
         if (block.type === 'heading') {
-          const HeadingTag = block.level === 2 ? 'h2' : 'h3';
+          const HeadingTag = block.level === 3 ? 'h3' : 'h2';
 
           return (
             <HeadingTag
               key={`${block.text}-${index}`}
               className={cn(
                 'tracking-normal text-foreground',
-                block.level === 2
+                block.level !== 3
                   ? 'mt-6 border-l-4 border-primary/70 pl-3 text-base font-semibold first:mt-0'
                   : 'mt-5 text-sm font-semibold first:mt-0',
                 dense && 'mt-4 text-sm',

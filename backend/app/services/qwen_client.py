@@ -14,7 +14,7 @@ def _get_client() -> OpenAI:
     )
 
 
-def call_qwen(system_prompt: str, user_prompt: str, model: str = "qwen3.5-flash") -> str:
+def call_qwen(system_prompt: str, user_prompt: str, model: str = "qwen3.6-plus") -> str:
     """
     Send a prompt to Qwen and return the text response.
     Raises RuntimeError on API failure.
@@ -32,7 +32,7 @@ def call_qwen(system_prompt: str, user_prompt: str, model: str = "qwen3.5-flash"
     return completion.choices[0].message.content.strip()
 
 
-def call_qwen_json(system_prompt: str, user_prompt: str, model: str = "qwen3.5-flash") -> dict | list:
+def call_qwen_json(system_prompt: str, user_prompt: str, model: str = "qwen3.6-plus") -> dict | list:
     """
     Like call_qwen but expects and parses a JSON response.
     Raises ValueError if response is not valid JSON.

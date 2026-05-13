@@ -4,6 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RichTextBlock } from '@/components/content/RichTextBlock';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 import { getApiErrorDetail, lecturesApi, processingApi, quizApi } from '@/lib/api';
 import type { Lecture, QuizQuestion } from '@/types';
@@ -96,10 +97,14 @@ export function VideoResultPage() {
             <Card>
               <CardHeader>
                 <CardTitle>{lecture.title || 'Lecture'}</CardTitle>
-                {lecture.summary && <CardDescription>{lecture.summary}</CardDescription>}
+                {lecture.summary && (
+                  <CardDescription>
+                    <RichTextBlock text={lecture.summary} dense />
+                  </CardDescription>
+                )}
               </CardHeader>
               <CardContent>
-                <div className="whitespace-pre-wrap">{lecture.content}</div>
+                <RichTextBlock text={lecture.content} />
               </CardContent>
             </Card>
 

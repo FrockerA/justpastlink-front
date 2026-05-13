@@ -57,7 +57,12 @@ def _strip_code_fence(raw: str) -> str:
 
 def _clean_text(value: object, default: str = "") -> str:
     if isinstance(value, str):
-        return value.strip()
+        return (
+            value.strip()
+            .replace("\\r\\n", "\n")
+            .replace("\\n", "\n")
+            .replace("\\r", "\n")
+        )
     if isinstance(value, list):
         return "\n".join(f"- {item}".strip() for item in value if item).strip()
     if value is None:
