@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useVideos } from '@/hooks/useVideos';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,10 @@ interface VideoListProps {
   onRefresh?: () => void;
 }
 
+type VideoFilter = 'all' | 'processing' | 'failed';
+
+const processingStatuses = ['queued', 'processing', 'generating_lecture', 'generating_quiz'];
+
 const statusColors: Record<string, string> = {
   uploaded: 'bg-yellow-500',
   queued: 'bg-amber-500',
@@ -50,6 +55,7 @@ const statusLabels: Record<string, string> = {
 
 export function VideoList({ onRefresh }: VideoListProps) {
   const { videos, isLoading, error, deleteVideo } = useVideos();
+  const [filter, setFilter] = useState<VideoFilter>('all');
 
   const handleDelete = async (videoId: number) => {
     if (confirm('Are you sure you want to delete this video?')) {
@@ -127,16 +133,46 @@ export function VideoList({ onRefresh }: VideoListProps) {
     );
   }
 
+  const filteredVideos = videos.filter((video) => {
+    if (filter === 'processing') return processingStatuses.includes(video.status);
+    if (filter === 'failed') return video.status === 'failed' || video.status === 'error';
+    return true;
+  });
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Your Videos</CardTitle>
-        <CardDescription>
-          {videos.length} video{videos.length !== 1 ? 's' : ''} uploaded
-        </CardDescription>
+      <CardHeader className="gap-3">
+        <div>
+          <CardTitle>Your Videos</CardTitle>
+          <CardDescription>
+            {videos.length} video{videos.length !== 1 ? 's' : ''} uploaded
+          </CardDescription>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'all', label: 'All' },
+            { value: 'processing', label: 'Processing' },
+            { value: 'failed', label: 'Failed' },
+          ].map((item) => (
+            <Button
+              key={item.value}
+              type="button"
+              variant={filter === item.value ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setFilter(item.value as VideoFilter)}
+            >
+              {item.label}
+            </Button>
+          ))}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        {videos.map((video) => {
+        {filteredVideos.length === 0 && (
+          <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+            No videos match this filter.
+          </div>
+        )}
+        {filteredVideos.map((video) => {
           const statusColor = statusColors[video.status] ?? 'bg-slate-500';
           const statusLabel = statusLabels[video.status] ?? video.status ?? 'Unknown';
 

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { format } from '@/lib/utils';
 import { AlertCircle, CheckCircle2, FileText, HelpCircle, Loader2, Plus, Video } from 'lucide-react';
 
 const inProgressStatuses = ['queued', 'processing', 'generating_lecture', 'generating_quiz'];
+type DashboardFilter = 'all' | 'processing' | 'failed';
 
 function formatDate(dateString: string) {
   try {
@@ -19,10 +21,16 @@ function formatDate(dateString: string) {
 
 export function DashboardPage() {
   const { videos, isLoading, error } = useVideos();
+  const [filter, setFilter] = useState<DashboardFilter>('all');
   const completedCount = videos.filter((video) => video.status === 'completed').length;
   const processingCount = videos.filter((video) => inProgressStatuses.includes(video.status)).length;
   const failedCount = videos.filter((video) => video.status === 'failed' || video.status === 'error').length;
-  const recentVideos = videos.slice(0, 4);
+  const filteredVideos = videos.filter((video) => {
+    if (filter === 'processing') return inProgressStatuses.includes(video.status);
+    if (filter === 'failed') return video.status === 'failed' || video.status === 'error';
+    return true;
+  });
+  const recentVideos = filteredVideos.slice(0, 4);
 
   return (
     <MainLayout>
@@ -102,14 +110,35 @@ export function DashboardPage() {
                 <CardTitle>Recent Videos</CardTitle>
                 <CardDescription>Latest uploads and processing results</CardDescription>
               </div>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/videos">Open My Videos</Link>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: 'all', label: 'All' },
+                  { value: 'processing', label: 'Processing' },
+                  { value: 'failed', label: 'Failed' },
+                ].map((item) => (
+                  <Button
+                    key={item.value}
+                    variant={filter === item.value ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setFilter(item.value as DashboardFilter)}
+                  >
+                    {item.label}
+                  </Button>
+                ))}
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/videos">Open My Videos</Link>
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              {!isLoading && recentVideos.length === 0 && (
+              {!isLoading && videos.length === 0 && (
                 <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
                   No videos yet.
+                </div>
+              )}
+              {!isLoading && videos.length > 0 && recentVideos.length === 0 && (
+                <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
+                  No videos match this filter.
                 </div>
               )}
               {isLoading && (

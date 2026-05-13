@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext, type ReactNode } from 'react';
 import { authApi } from '@/lib/api';
-import type { User, LoginRequest, RegisterRequest } from '@/types';
+import type { EmailUpdateRequest, LoginRequest, PasswordUpdateRequest, RegisterRequest, User, UserUpdateRequest } from '@/types';
 
 interface AuthContextType {
   user: User | null;
@@ -8,6 +8,9 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (data: LoginRequest) => Promise<void>;
   register: (data: RegisterRequest) => Promise<void>;
+  updateProfile: (data: UserUpdateRequest) => Promise<void>;
+  updateEmail: (data: EmailUpdateRequest) => Promise<void>;
+  updatePassword: (data: PasswordUpdateRequest) => Promise<void>;
   logout: () => void;
 }
 
@@ -46,6 +49,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(response.user);
   };
 
+  const updateProfile = async (data: UserUpdateRequest) => {
+    const updatedUser = await authApi.updateCurrentUser(data);
+    setUser(updatedUser);
+  };
+
+  const updateEmail = async (data: EmailUpdateRequest) => {
+    const updatedUser = await authApi.updateEmail(data);
+    setUser(updatedUser);
+  };
+
+  const updatePassword = async (data: PasswordUpdateRequest) => {
+    await authApi.updatePassword(data);
+  };
+
   const logout = () => {
     authApi.logout();
     setUser(null);
@@ -59,6 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAuthenticated: !!user,
         login,
         register,
+        updateProfile,
+        updateEmail,
+        updatePassword,
         logout,
       }}
     >

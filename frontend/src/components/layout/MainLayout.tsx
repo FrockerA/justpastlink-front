@@ -12,7 +12,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(false)} />
+      <Sidebar isOpen={isSidebarOpen} />
       <div
         className={cn(
           "flex flex-col min-h-screen transition-[margin] duration-300 ease-out",

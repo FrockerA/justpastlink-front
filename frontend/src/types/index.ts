@@ -29,14 +29,32 @@ export interface ProcessingJob {
   video_id?: number;
   job_type: string;
   status: JobStatus;
+  current_stage: ProcessingStage | null;
+  correlation_id: string | null;
+  task_id: string | null;
   started_at: string | null;
   finished_at: string | null;
+  duration_ms: number | null;
+  error_code: string | null;
   error_message: string | null;
+  stage_timings: Record<string, ProcessingStageTiming>;
   created_at: string;
   updated_at: string;
 }
 
 export type JobStatus = 'pending' | 'queued' | 'processing' | 'generating_lecture' | 'generating_quiz' | 'completed' | 'failed';
+
+export type ProcessingStage = 'download' | 'transcribe' | 'summarize' | 'quiz';
+
+export interface ProcessingStageTiming {
+  status?: 'processing' | 'retrying' | 'completed' | 'failed';
+  started_at?: string | null;
+  finished_at?: string | null;
+  duration_ms?: number | null;
+  error_code?: string | null;
+  error_message?: string | null;
+  attempts?: number;
+}
 
 export interface Transcript {
   id: number;
@@ -96,6 +114,22 @@ export interface ProcessingStatusResponse {
   transcript_ready: boolean;
   lecture_ready: boolean;
   quiz_ready: boolean;
+  current_stage: ProcessingStage | null;
+  stage_index: number;
+  stage_count: number;
+  progress_percent: number;
+  eta_seconds: number | null;
+  latest_error_code: string | null;
+}
+
+export interface ProcessingDiagnosticsResponse {
+  video_id: number;
+  video_status: VideoStatus;
+  latest_job: ProcessingJob | null;
+  jobs: ProcessingJob[];
+  stage_order: ProcessingStage[];
+  progress_percent: number;
+  eta_seconds: number | null;
 }
 
 export interface ApiError {
@@ -111,6 +145,20 @@ export interface RegisterRequest {
   email: string;
   password: string;
   full_name: string;
+}
+
+export interface UserUpdateRequest {
+  full_name: string | null;
+}
+
+export interface EmailUpdateRequest {
+  email: string;
+  current_password: string;
+}
+
+export interface PasswordUpdateRequest {
+  current_password: string;
+  new_password: string;
 }
 
 export interface AuthResponse {
