@@ -46,6 +46,11 @@ app.include_router(lectures_router)
 app.include_router(quiz_router)
 
 
+@app.get("/healthz", include_in_schema=False)
+def healthz():
+    return {"status": "ok"}
+
+
 FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
 
 if FRONTEND_DIST.exists():

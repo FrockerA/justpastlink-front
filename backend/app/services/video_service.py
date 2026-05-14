@@ -10,9 +10,8 @@ from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.models.video import Video
+from app.services.storage_service import delete_media_file, store_media_file, upload_destination
 from app.services.youtube_service import get_youtube_metadata
-
-UPLOAD_DIR = Path("uploads")
 
 ALLOWED_MIME_TYPES = {
     "video/mp4",
@@ -144,21 +143,21 @@ def save_video(db: Session, file: UploadFile, user_id: int) -> Video:
             "file_mime_unsupported",
         )
 
-    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-
     extension = Path(file.filename).suffix
     stored_filename = f"{uuid4().hex}{extension}"
-    destination = UPLOAD_DIR / stored_filename
+    destination = upload_destination(stored_filename)
+    saved_file_path: str | None = None
 
     try:
         file_size = _copy_upload_with_limit(file, destination)
         duration_seconds = _validate_media_file(destination)
+        saved_file_path = store_media_file(destination, stored_filename)
 
         video = Video(
             user_id=user_id,
             original_filename=file.filename,
             stored_filename=stored_filename,
-            file_path=str(destination),
+            file_path=saved_file_path,
             file_size=file_size,
             mime_type=file.content_type,
             duration_seconds=duration_seconds,
@@ -172,11 +171,18 @@ def save_video(db: Session, file: UploadFile, user_id: int) -> Video:
 
     except Exception:
         db.rollback()
-        if destination.exists():
+        if saved_file_path:
+            try:
+                delete_media_file(saved_file_path)
+            except Exception:
+                pass
+        elif destination.exists():
             destination.unlink()
         raise
 
     finally:
+        if destination.exists() and settings.storage_backend != "local":
+            destination.unlink()
         file.file.close()
 
 
@@ -196,14 +202,14 @@ def get_user_videos(db: Session, user_id: int) -> list[Video]:
 
 def delete_video(db: Session, video: Video) -> None:
     """Delete a video row and best-effort remove its stored media file."""
-    file_path = Path(video.file_path) if video.file_path else None
+    file_path = video.file_path
     db.delete(video)
     db.commit()
 
-    if file_path and file_path.exists():
+    if file_path:
         try:
-            file_path.unlink()
-        except OSError:
+            delete_media_file(file_path)
+        except Exception:
             pass
 
 

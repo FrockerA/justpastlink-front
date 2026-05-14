@@ -37,6 +37,16 @@ class Settings:
         self.max_upload_bytes = int(self._get_env("MAX_UPLOAD_BYTES", str(500 * 1024 * 1024)))
         self.max_video_duration_seconds = int(self._get_env("MAX_VIDEO_DURATION_SECONDS", "7200"))
         self.require_ffprobe_validation = self._get_bool("REQUIRE_FFPROBE_VALIDATION", False)
+        self.upload_dir = self._get_env("UPLOAD_DIR", "uploads")
+        self.storage_backend = self._get_env("STORAGE_BACKEND", "local").strip().lower()
+        if self.storage_backend not in {"local", "s3"}:
+            raise RuntimeError("STORAGE_BACKEND must be either 'local' or 's3'")
+        self.s3_bucket_name = self._get_env("S3_BUCKET_NAME", "")
+        self.s3_endpoint_url = self._get_env("S3_ENDPOINT_URL", "")
+        self.s3_region_name = self._get_env("S3_REGION_NAME", "")
+        self.s3_access_key_id = self._get_env("S3_ACCESS_KEY_ID", "")
+        self.s3_secret_access_key = self._get_env("S3_SECRET_ACCESS_KEY", "")
+        self.s3_upload_prefix = self._get_env("S3_UPLOAD_PREFIX", "uploads")
         self.sentry_dsn = self._get_env("SENTRY_DSN", "")
         self.app_environment = self._get_env("APP_ENV", "development")
 
