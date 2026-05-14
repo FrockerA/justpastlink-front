@@ -266,6 +266,39 @@ When `frontend/dist` exists, FastAPI serves the built frontend from the backend 
 
 Production still needs PostgreSQL, Redis, and a Celery worker running separately.
 
+## Render Deployment
+
+The repository includes `render.yaml` for a multi-service Render deployment:
+
+- `justpastlink-web`: FastAPI API plus the built Vite frontend.
+- `justpastlink-worker`: Celery worker for video processing.
+- `justpastlink-db`: Render Postgres.
+- `justpastlink-redis`: Render Key Value for Celery broker/results.
+
+Create the deployment from Render Blueprints and point it at this repository. The web service build command installs backend production dependencies, builds `frontend/dist`, runs SQL migrations in `preDeployCommand`, and starts FastAPI on Render's `$PORT`. The worker installs the same backend production dependencies and starts Celery on the `video-processing` queue.
+
+Render will prompt for these secret values because they are marked with `sync: false` in `render.yaml`:
+
+```env
+DASHSCOPE_API_KEY=
+S3_BUCKET_NAME=
+S3_ENDPOINT_URL=
+S3_REGION_NAME=
+S3_ACCESS_KEY_ID=
+S3_SECRET_ACCESS_KEY=
+```
+
+Use an S3-compatible bucket, such as AWS S3, Cloudflare R2, Backblaze B2, or Supabase Storage. In production `STORAGE_BACKEND=s3`, so uploads are written to object storage and the worker downloads them before transcription. This is required because Render service filesystems are not shared between the web service and a separate background worker.
+
+For local development, keep:
+
+```env
+STORAGE_BACKEND=local
+UPLOAD_DIR=uploads
+```
+
+If you deploy under a custom domain or Render assigns a different `onrender.com` hostname, update `CORS_ORIGINS` on the web service. When FastAPI serves the built frontend from the same origin, `VITE_API_URL` should stay empty in production.
+
 ## Notes
 
 The project stores quiz data in the `quizzes` table as a JSON payload per video. The old `quiz_questions` table is removed by migration `010_drop_quiz_questions.up.sql`.

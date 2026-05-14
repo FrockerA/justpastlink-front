@@ -1,4 +1,3 @@
-import whisper
 from threading import Lock
 from pathlib import Path
 
@@ -17,6 +16,8 @@ def _get_model():
     if _model is None:
         with _model_lock:
             if _model is None:
+                import whisper
+
                 _model = whisper.load_model("base")
     return _model
 

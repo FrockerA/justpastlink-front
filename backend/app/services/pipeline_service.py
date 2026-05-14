@@ -22,6 +22,12 @@ from app.services.processing_service import (
     get_processing_status,
 )
 from app.services.quiz_service import generate_quiz, get_quiz_by_video_id
+from app.services.storage_service import (
+    materialize_media_file,
+    media_upload_dir,
+    store_media_file,
+    temp_media_dir,
+)
 from app.services.transcription_service import get_transcript_by_video_id, transcribe_video
 from app.services.youtube_service import download_youtube_audio, is_youtube_url
 
@@ -121,19 +127,22 @@ def _prepare_source(db, video_id: int, file_path: str) -> str:
 
     source = video.file_path or file_path
     if is_youtube_url(source):
-        yt_data = download_youtube_audio(source, "uploads")
+        output_dir = temp_media_dir() if settings.storage_backend == "s3" else media_upload_dir()
+        yt_data = download_youtube_audio(source, str(output_dir))
+        local_path = Path(yt_data["file_path"])
+        stored_path = store_media_file(local_path, yt_data["stored_filename"])
         video.original_filename = yt_data["original_filename"]
         video.stored_filename = yt_data["stored_filename"]
-        video.file_path = yt_data["file_path"]
+        video.file_path = stored_path
         video.file_size = yt_data["file_size"]
         video.mime_type = yt_data["mime_type"]
         video.duration_seconds = yt_data.get("duration_seconds")
         db.add(video)
         db.commit()
         db.refresh(video)
-        return video.file_path
+        return str(local_path)
 
-    local_path = Path(source)
+    local_path = materialize_media_file(source, stored_filename=video.stored_filename)
     if not local_path.exists() or local_path.stat().st_size == 0:
         raise ValueError("Media file is missing or empty")
     return str(local_path)
