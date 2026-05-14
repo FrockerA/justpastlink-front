@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
 import { useQuiz } from '@/hooks/useQuiz';
+import { renderHighlightedText } from '@/components/content/HighlightedText';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ import type {
 
 interface QuizViewProps {
   videoId: number;
+  searchQuery?: string;
 }
 
 type OptionChoice = {
@@ -286,7 +288,8 @@ function getScorePercent(attempt: QuizAttempt) {
   return Math.round((attempt.score / attempt.total) * 100);
 }
 
-export function QuizView({ videoId }: QuizViewProps) {
+export function QuizView({ videoId, searchQuery = '' }: QuizViewProps) {
+  const searchMatchRef = useRef<HTMLDivElement | null>(null);
   const [difficulty, setDifficulty] = useState<QuizDifficulty>('mixed');
   const [mode, setMode] = useState<QuizMode>('practice');
   const [questionLimit, setQuestionLimit] = useState<QuizQuestionLimit>('10');
@@ -306,6 +309,7 @@ export function QuizView({ videoId }: QuizViewProps) {
     attempts: readQuizAttempts(videoId),
   }));
   const effectiveQuestionLimit = getEffectiveQuestionLimit(questionLimit, questions.length);
+  const trimmedSearchQuery = searchQuery.trim();
   const availableQuestionLimitOptions = questionLimitOptions.map((option) => ({
     ...option,
     disabled: option.value !== 'all' && Number(option.value) > questions.length,
@@ -345,6 +349,40 @@ export function QuizView({ videoId }: QuizViewProps) {
       score: getScorePercent(attempt) ?? 0,
       label: formatAttemptDate(attempt.completed_at),
     }));
+  const searchMatchedQuestion = useMemo(() => {
+    if (!trimmedSearchQuery) {
+      return null;
+    }
+
+    const lowerQuery = trimmedSearchQuery.toLowerCase();
+    return (
+      questions.find((question) => {
+        return [
+          question.question_text,
+          question.option_a,
+          question.option_b,
+          question.option_c,
+          question.option_d,
+          question.correct_answer,
+          question.explanation,
+        ]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(lowerQuery));
+      }) ?? null
+    );
+  }, [questions, trimmedSearchQuery]);
+
+  useEffect(() => {
+    if (!searchMatchedQuestion) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => {
+      searchMatchRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 150);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [searchMatchedQuestion]);
 
   const handleStart = () => {
     setQuizStarted(true);
@@ -546,6 +584,33 @@ export function QuizView({ videoId }: QuizViewProps) {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
+        {searchMatchedQuestion && (
+          <div ref={searchMatchRef} className="rounded-md border bg-amber-50/70 p-4 dark:bg-amber-950/20">
+            <div className="mb-3 flex items-center gap-2">
+              <Badge variant="secondary" className="rounded-md">Search match</Badge>
+              <span className="text-xs text-muted-foreground">Found in quiz content</span>
+            </div>
+            <div className="space-y-3">
+              <p className="text-sm font-semibold">
+                {renderHighlightedText(searchMatchedQuestion.question_text, trimmedSearchQuery)}
+              </p>
+              <div className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                {getAnswerOptions(searchMatchedQuestion).map((option) => (
+                  <div key={option.key} className="rounded-md border bg-background/70 px-3 py-2">
+                    <span className="font-medium text-foreground">{option.key}.</span>{' '}
+                    {renderHighlightedText(option.text, trimmedSearchQuery)}
+                  </div>
+                ))}
+              </div>
+              {searchMatchedQuestion.explanation && (
+                <p className="rounded-md bg-background/70 px-3 py-2 text-sm text-muted-foreground">
+                  {renderHighlightedText(searchMatchedQuestion.explanation, trimmedSearchQuery)}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
+
         {!quizStarted ? (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="space-y-5">

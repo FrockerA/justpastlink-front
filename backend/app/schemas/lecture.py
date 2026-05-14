@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class LectureCreate(BaseModel):
@@ -15,6 +15,15 @@ class LectureUpdate(BaseModel):
     content: str | None = None
     summary: str | None = None
     status: str | None = None
+
+
+class LectureAskRequest(BaseModel):
+    question: str
+
+
+class LectureAskResponse(BaseModel):
+    answer: str
+    citations: list[str] = Field(default_factory=list)
 
 
 class LectureResponse(BaseModel):

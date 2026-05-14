@@ -28,6 +28,9 @@ export function VideoDetailPage() {
   const { video, isLoading, error } = useVideo(videoId ? parseInt(videoId) : null);
   
   const currentTab = searchParams.get('tab') || 'status';
+  const searchQuery = searchParams.get('search') || '';
+  const searchSource = searchParams.get('source') || '';
+  const searchField = searchParams.get('field') || '';
   
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value });
@@ -146,15 +149,32 @@ export function VideoDetailPage() {
           </TabsContent>
 
           <TabsContent value="transcript" className="mt-6">
-            {currentTab === 'transcript' && <TranscriptView videoId={video.id} />}
+            {currentTab === 'transcript' && (
+              <TranscriptView
+                videoId={video.id}
+                searchQuery={searchQuery}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="lecture" className="mt-6">
-            {currentTab === 'lecture' && <LectureView videoId={video.id} />}
+            {currentTab === 'lecture' && (
+              <LectureView
+                videoId={video.id}
+                searchQuery={searchQuery}
+                searchSource={searchSource}
+                searchField={searchField}
+              />
+            )}
           </TabsContent>
 
           <TabsContent value="quiz" className="mt-6">
-            {currentTab === 'quiz' && <QuizView videoId={video.id} />}
+            {currentTab === 'quiz' && (
+              <QuizView
+                videoId={video.id}
+                searchQuery={searchQuery}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>

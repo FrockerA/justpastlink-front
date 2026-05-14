@@ -11,6 +11,7 @@ from app.api.routes import (
     lectures_router,
     processing_router,
     quiz_router,
+    search_router,
     transcripts_router,
     videos_router,
 )
@@ -44,6 +45,7 @@ app.include_router(processing_router)
 app.include_router(transcripts_router)
 app.include_router(lectures_router)
 app.include_router(quiz_router)
+app.include_router(search_router)
 
 
 @app.get("/healthz", include_in_schema=False)
@@ -60,7 +62,7 @@ if FRONTEND_DIST.exists():
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def serve_frontend(full_path: str):
-        api_prefixes = {"auth", "videos", "processing", "transcripts", "lectures", "quiz"}
+        api_prefixes = {"auth", "videos", "processing", "transcripts", "lectures", "quiz", "search"}
         first_segment = full_path.split("/", 1)[0]
         if first_segment in api_prefixes:
             raise HTTPException(status_code=404, detail="API route not found")

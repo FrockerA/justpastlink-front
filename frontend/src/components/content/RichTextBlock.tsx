@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils';
+import { renderHighlightedText } from '@/components/content/HighlightedText';
 
 type RichBlock =
   | { type: 'heading'; level: 1 | 2 | 3; text: string }
@@ -11,9 +12,17 @@ interface RichTextBlockProps {
   emptyText?: string;
   dense?: boolean;
   className?: string;
+  headingIdPrefix?: string;
+  highlightQuery?: string;
 }
 
-function extractDisplayText(text: string) {
+export interface RichTextHeading {
+  id: string;
+  level: 1 | 2 | 3;
+  text: string;
+}
+
+export function extractDisplayText(text: string) {
   const trimmed = text.trim();
 
   try {
@@ -36,6 +45,25 @@ function normalizeRichText(text: string) {
     .replace(/\\r\\n/g, '\n')
     .replace(/\\n/g, '\n')
     .replace(/\\r/g, '\n');
+}
+
+export function extractRichTextHeadings(text?: string | null, idPrefix = 'heading'): RichTextHeading[] {
+  if (!text?.trim()) {
+    return [];
+  }
+
+  let headingIndex = 0;
+  return parseRichText(text)
+    .filter((block): block is { type: 'heading'; level: 1 | 2 | 3; text: string } => block.type === 'heading')
+    .map((heading) => {
+      const nextHeading = {
+        id: `${idPrefix}-${headingIndex}`,
+        level: heading.level,
+        text: heading.text,
+      };
+      headingIndex += 1;
+      return nextHeading;
+    });
 }
 
 function parseRichText(text: string): RichBlock[] {
@@ -114,17 +142,17 @@ function parseRichText(text: string): RichBlock[] {
   return blocks;
 }
 
-function renderInline(text: string) {
+function renderInline(text: string, highlightQuery?: string | null) {
   return text.split(/(\*\*[^*]+\*\*)/g).filter(Boolean).map((part, index) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       return (
         <strong key={`${part}-${index}`} className="font-semibold text-foreground">
-          {part.slice(2, -2)}
+          {renderHighlightedText(part.slice(2, -2), highlightQuery)}
         </strong>
       );
     }
 
-    return part;
+    return renderHighlightedText(part, highlightQuery);
   });
 }
 
@@ -133,6 +161,8 @@ export function RichTextBlock({
   emptyText = 'No content available',
   dense = false,
   className,
+  headingIdPrefix,
+  highlightQuery,
 }: RichTextBlockProps) {
   const blocks = text?.trim() ? parseRichText(text) : [];
 
@@ -151,11 +181,17 @@ export function RichTextBlock({
       {blocks.map((block, index) => {
         if (block.type === 'heading') {
           const HeadingTag = block.level === 3 ? 'h3' : 'h2';
+          const headingIndex = blocks
+            .slice(0, index)
+            .filter((item) => item.type === 'heading').length;
+          const headingId = headingIdPrefix ? `${headingIdPrefix}-${headingIndex}` : undefined;
 
           return (
             <HeadingTag
               key={`${block.text}-${index}`}
+              id={headingId}
               className={cn(
+                headingId && 'scroll-mt-4',
                 'tracking-normal text-foreground',
                 block.level !== 3
                   ? 'mt-6 border-l-4 border-primary/70 pl-3 text-base font-semibold first:mt-0'
@@ -163,7 +199,7 @@ export function RichTextBlock({
                 dense && 'mt-4 text-sm',
               )}
             >
-              {renderInline(block.text)}
+              {renderInline(block.text, highlightQuery)}
             </HeadingTag>
           );
         }
@@ -182,7 +218,7 @@ export function RichTextBlock({
             >
               {block.items.map((item, itemIndex) => (
                 <li key={`${item}-${itemIndex}`} className="pl-1 marker:text-primary">
-                  {renderInline(item)}
+                  {renderInline(item, highlightQuery)}
                 </li>
               ))}
             </ListTag>
@@ -195,14 +231,14 @@ export function RichTextBlock({
               key={`${block.text}-${index}`}
               className="rounded-md border-l-4 border-primary/70 bg-muted/50 px-4 py-3 text-foreground/90"
             >
-              {renderInline(block.text)}
+              {renderInline(block.text, highlightQuery)}
             </blockquote>
           );
         }
 
         return (
           <p key={`${block.text}-${index}`} className="text-foreground/90">
-            {renderInline(block.text)}
+            {renderInline(block.text, highlightQuery)}
           </p>
         );
       })}

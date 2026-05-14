@@ -8,6 +8,9 @@ import type {
   ProcessingJob,
   Transcript,
   Lecture,
+  LectureAskRequest,
+  LectureAskResponse,
+  LibrarySearchResult,
   QuizApiResponse,
   QuizResponse,
   LoginRequest,
@@ -183,6 +186,8 @@ export const transcriptsApi = {
 };
 
 // Lectures API
+const LECTURE_ASK_TIMEOUT_MS = 120000;
+
 export const lecturesApi = {
   getLecture: async (videoId: number): Promise<Lecture> => {
     const response = await apiClient.get<Lecture>(`/lectures/${videoId}`);
@@ -191,6 +196,14 @@ export const lecturesApi = {
 
   updateLecture: async (videoId: number, data: Partial<Lecture>): Promise<Lecture> => {
     const response = await apiClient.put<Lecture>(`/lectures/${videoId}`, data);
+    return response.data;
+  },
+
+  askLecture: async (videoId: number, question: string): Promise<LectureAskResponse> => {
+    const payload: LectureAskRequest = { question };
+    const response = await apiClient.post<LectureAskResponse>(`/lectures/${videoId}/ask`, payload, {
+      timeout: LECTURE_ASK_TIMEOUT_MS,
+    });
     return response.data;
   },
 };
@@ -212,6 +225,21 @@ export const quizApi = {
       ...response.data,
       questions: parsedQuestions,
     };
+  },
+};
+
+// Search API
+export const searchApi = {
+  searchLibrary: async (query: string, limit = 30): Promise<LibrarySearchResult[]> => {
+    const response = await apiClient.get<unknown>('/search', {
+      params: { q: query, limit },
+    });
+
+    if (!Array.isArray(response.data)) {
+      throw new Error('Invalid search response from API');
+    }
+
+    return response.data as LibrarySearchResult[];
   },
 };
 
