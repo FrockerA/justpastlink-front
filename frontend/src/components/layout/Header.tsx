@@ -5,6 +5,7 @@ import { Sheet, SheetClose, SheetContent, SheetTitle, SheetTrigger } from '@/com
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { navItems } from './Sidebar';
+import { LibrarySearch } from './LibrarySearch';
 
 interface HeaderProps {
   isSidebarOpen: boolean;
@@ -88,10 +89,11 @@ export function Header({ isSidebarOpen, onSidebarToggle }: HeaderProps) {
           </SheetContent>
         </Sheet>
 
-        <div className="flex-1 flex items-center justify-between">
-          <h2 className="text-lg font-semibold tracking-tight">
+        <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
+          <h2 className="truncate text-lg font-semibold tracking-tight">
             {getPageTitle()}
           </h2>
+          <LibrarySearch />
         </div>
       </div>
     </header>

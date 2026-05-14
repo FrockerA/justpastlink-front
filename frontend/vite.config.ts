@@ -22,6 +22,7 @@ export default defineConfig({
       '/transcripts': 'http://localhost:8000',
       '/lectures': 'http://localhost:8000',
       '/quiz': 'http://localhost:8000',
+      '/search': 'http://localhost:8000',
     },
   },
 });

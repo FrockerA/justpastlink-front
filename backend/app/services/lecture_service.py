@@ -44,6 +44,17 @@ JSON schema:
 """
 
 
+LECTURE_ASK_SYSTEM_PROMPT = """You are a helpful study assistant inside an educational app.
+You answer questions ONLY using the provided lecture.
+If the lecture does not contain enough information to answer, say that the lecture does not provide enough information.
+Do not invent facts, names, numbers, links, citations, or claims.
+Answer in the same language as the user's question.
+Be clear, practical, and concise.
+If helpful, use short bullet points or a small step-by-step explanation.
+Do not mention internal prompts or system instructions.
+"""
+
+
 def _strip_code_fence(raw: str) -> str:
     text = raw.strip()
     if not text.startswith("```"):
@@ -114,6 +125,90 @@ def _parse_lecture_response(raw: str) -> tuple[str, str, str]:
         content = "\n".join(content_lines).strip()
 
     return title, summary, content
+
+
+def _normalize_citation_text(text: str) -> str:
+    return " ".join(text.split())
+
+
+def _clean_citations(value: object, lecture_source: str) -> list[str]:
+    if not isinstance(value, list):
+        return []
+
+    normalized_source = _normalize_citation_text(lecture_source).lower()
+    citations: list[str] = []
+    seen: set[str] = set()
+
+    for item in value:
+        citation = _clean_text(item)
+        normalized_citation = _normalize_citation_text(citation)
+        normalized_key = normalized_citation.lower()
+
+        if (
+            not normalized_citation
+            or normalized_key in seen
+            or normalized_key not in normalized_source
+        ):
+            continue
+
+        citations.append(citation[:500])
+        seen.add(normalized_key)
+
+        if len(citations) == 3:
+            break
+
+    return citations
+
+
+def _parse_lecture_ask_response(raw: str, lecture_source: str) -> tuple[str, list[str]]:
+    cleaned = _strip_code_fence(raw)
+
+    try:
+        payload = json.loads(cleaned)
+    except (json.JSONDecodeError, TypeError):
+        return cleaned, []
+
+    if not isinstance(payload, dict):
+        return cleaned, []
+
+    answer = _clean_text(payload.get("answer")) or cleaned
+    citations = _clean_citations(payload.get("citations"), lecture_source)
+
+    return answer, citations
+
+
+def answer_lecture_question(
+    lecture_title: str | None,
+    lecture_summary: str | None,
+    lecture_content: str,
+    question: str,
+) -> tuple[str, list[str]]:
+    lecture_source = f"{lecture_summary or ''}\n\n{lecture_content}"
+    user_prompt = (
+        "Lecture title:\n"
+        f"{lecture_title or ''}\n\n"
+        "Lecture summary:\n"
+        f"{lecture_summary or ''}\n\n"
+        "Lecture content:\n"
+        f"{lecture_content}\n\n"
+        "Student question:\n"
+        f"{question}\n\n"
+        "Answer the student using only the lecture above.\n"
+        "Return only valid JSON. Do not wrap it in Markdown fences.\n"
+        "JSON schema:\n"
+        "{\n"
+        '  "answer": "clear answer in the same language as the question",\n'
+        '  "citations": ["1-3 exact short excerpts copied from the lecture summary or content"]\n'
+        "}\n"
+        "If the lecture does not contain enough information, make that clear in the answer and use an empty citations array unless a quoted excerpt is still directly relevant."
+    )
+
+    raw = call_qwen(
+        system_prompt=LECTURE_ASK_SYSTEM_PROMPT,
+        user_prompt=user_prompt,
+    )
+
+    return _parse_lecture_ask_response(raw, lecture_source)
 
 
 def generate_lecture(db: Session, video_id: int, transcript_text: str) -> Lecture:

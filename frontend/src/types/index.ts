@@ -78,6 +78,31 @@ export interface Lecture {
 
 export type LectureStatus = 'draft' | 'generated' | 'completed' | 'error';
 
+export interface LectureAskRequest {
+  question: string;
+}
+
+export interface LectureAskResponse {
+  answer: string;
+  citations: string[];
+}
+
+export interface LectureChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  citations?: string[];
+}
+
+export interface LibrarySearchResult {
+  video_id: number;
+  video_title: string;
+  source: 'video' | 'transcript' | 'lecture' | 'quiz' | string;
+  field: string;
+  snippet: string;
+  tab: 'status' | 'transcript' | 'lecture' | 'quiz' | string;
+}
+
 export interface QuizQuestion {
   id?: number;
   question_text: string;
