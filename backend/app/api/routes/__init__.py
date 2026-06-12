@@ -5,6 +5,7 @@ from app.api.routes.quiz import router as quiz_router
 from app.api.routes.search import router as search_router
 from app.api.routes.transcript import router as transcripts_router  # ← НОВОЕ
 from app.api.routes.videos import router as videos_router
+from app.api.routes.catalogs import router as catalogs_router
 
 __all__ = [
     "auth_router",
@@ -14,4 +15,5 @@ __all__ = [
     "search_router",
     "transcripts_router",  # ← НОВОЕ
     "videos_router",
+    "catalogs_router",
 ]

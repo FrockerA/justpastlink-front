@@ -10,6 +10,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { MyVideosPage, NotesPage, ProfilePage, QuizzesPage, SettingsPage } from '@/pages/LearningPages';
 import { VideoDetailPage } from '@/pages/VideoDetailPage';
 import { VideoResultPage } from '@/pages/VideoResultPage';
+import { CatalogPage } from '@/pages/CatalogPage';
 import { Toaster } from '@/components/ui/sonner';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { GlobalProcessingNotifier } from '@/components/processing/GlobalProcessingNotifier';
@@ -48,6 +49,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <MyVideosPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/catalog"
+                  element={
+                    <ProtectedRoute>
+                      <CatalogPage />
                     </ProtectedRoute>
                   }
                 />
