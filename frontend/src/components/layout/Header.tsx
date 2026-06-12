@@ -20,6 +20,7 @@ export function Header({ isSidebarOpen, onSidebarToggle }: HeaderProps) {
     '/welcome': 'Welcome',
     '/dashboard': 'Dashboard',
     '/videos': 'My Videos',
+    '/catalog': 'Catalog',
     '/notes': 'Notes',
     '/quizzes': 'Quizzes',
     '/settings': 'Settings',

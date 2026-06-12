@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   FileText,
+  FolderOpen,
   GraduationCap,
   HelpCircle,
   LayoutDashboard,
@@ -16,6 +17,7 @@ import { cn } from '@/lib/utils';
 export const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/videos', label: 'My Videos', icon: Video },
+  { to: '/catalog', label: 'Catalog', icon: FolderOpen },
   { to: '/notes', label: 'Notes', icon: FileText },
   { to: '/quizzes', label: 'Quizzes', icon: HelpCircle },
   { to: '/settings', label: 'Settings', icon: Settings },

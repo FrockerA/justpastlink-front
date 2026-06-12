@@ -18,6 +18,7 @@ export default defineConfig({
     proxy: {
       '/auth': 'http://localhost:8000',
       '/videos': 'http://localhost:8000',
+      '/catalogs': 'http://localhost:8000',
       '/processing': 'http://localhost:8000',
       '/transcripts': 'http://localhost:8000',
       '/lectures': 'http://localhost:8000',
