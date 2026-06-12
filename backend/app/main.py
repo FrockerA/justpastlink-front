@@ -8,6 +8,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import (
     auth_router,
+    catalogs_router,
     lectures_router,
     processing_router,
     quiz_router,
@@ -40,6 +41,7 @@ app.add_middleware(
 )
 
 app.include_router(auth_router)
+app.include_router(catalogs_router)
 app.include_router(videos_router)
 app.include_router(processing_router)
 app.include_router(transcripts_router)
@@ -62,7 +64,16 @@ if FRONTEND_DIST.exists():
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def serve_frontend(full_path: str):
-        api_prefixes = {"auth", "videos", "processing", "transcripts", "lectures", "quiz", "search"}
+        api_prefixes = {
+            "auth",
+            "catalogs",
+            "videos",
+            "processing",
+            "transcripts",
+            "lectures",
+            "quiz",
+            "search",
+        }
         first_segment = full_path.split("/", 1)[0]
         if first_segment in api_prefixes:
             raise HTTPException(status_code=404, detail="API route not found")

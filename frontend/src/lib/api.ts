@@ -20,6 +20,7 @@ import type {
   UserUpdateRequest,
   AuthResponse,
   ApiError,
+  Catalog,
 } from '@/types';
 
 // Create axios instance
@@ -204,6 +205,45 @@ export const lecturesApi = {
     const response = await apiClient.post<LectureAskResponse>(`/lectures/${videoId}/ask`, payload, {
       timeout: LECTURE_ASK_TIMEOUT_MS,
     });
+    return response.data;
+  },
+};
+
+// Catalogs API
+export const catalogsApi = {
+  getCatalogs: async (): Promise<Catalog[]> => {
+    const response = await apiClient.get<Catalog[]>('/catalogs/');
+    if (!Array.isArray(response.data)) {
+      throw new Error('Invalid catalogs response from API');
+    }
+    return response.data;
+  },
+
+  createCatalog: async (name: string): Promise<Catalog> => {
+    const response = await apiClient.post<Catalog>('/catalogs/', { name });
+    return response.data;
+  },
+
+  renameCatalog: async (catalogId: number, name: string): Promise<Catalog> => {
+    const response = await apiClient.patch<Catalog>(`/catalogs/${catalogId}`, { name });
+    return response.data;
+  },
+
+  deleteCatalog: async (catalogId: number): Promise<void> => {
+    await apiClient.delete(`/catalogs/${catalogId}`);
+  },
+
+  addLecture: async (catalogId: number, videoId: number): Promise<Catalog> => {
+    const response = await apiClient.post<Catalog>(
+      `/catalogs/${catalogId}/lectures/${videoId}`
+    );
+    return response.data;
+  },
+
+  removeLecture: async (catalogId: number, videoId: number): Promise<Catalog> => {
+    const response = await apiClient.delete<Catalog>(
+      `/catalogs/${catalogId}/lectures/${videoId}`
+    );
     return response.data;
   },
 };

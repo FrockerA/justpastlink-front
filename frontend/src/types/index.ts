@@ -78,6 +78,22 @@ export interface Lecture {
 
 export type LectureStatus = 'draft' | 'generated' | 'completed' | 'error';
 
+export interface CatalogLecture {
+  video_id: number;
+  title: string;
+  video_title: string;
+  summary: string | null;
+  added_at: string;
+}
+
+export interface Catalog {
+  id: number;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  lectures: CatalogLecture[];
+}
+
 export interface LectureAskRequest {
   question: string;
 }
